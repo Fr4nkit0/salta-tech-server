@@ -1,0 +1,30 @@
+  spring:
+    application:
+      name: othercode-service
+    datasource:
+      driver-class-name: org.postgresql.Driver
+      url: jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}
+      username: ${DB_USERNAME}
+      password: ${DB_PASSWORD}
+    jpa:
+      show-sql: false
+      hibernate:
+        ddl-auto: validate  # cambiar deacuerdo a las politicas que pondremos en el futuro
+      properties:
+        hibernate:
+          format_sql: false
+      open-in-view: false
+  server:
+    port: ${SERVER_PORT:8080}
+    servlet:
+      context-path: /api/v1
+  logging:
+    level:
+      root: INFO
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET_KEY}
+      access-token-expiration-minutes: ${JWT_ACCESS_EXPIRATION_MINUTES}
+      refresh-token-expiration-days: ${JWT_REFRESH_EXPIRATION_DAYS}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS}

@@ -1,0 +1,206 @@
+package com.saltaTech.sale.application.service.implementations;
+
+import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
+import com.saltaTech.branch.domain.persistence.Branch;
+import com.saltaTech.branch.domain.repository.BranchRepository;
+import com.saltaTech.common.application.aop.OrganizationSecured;
+import com.saltaTech.customer.application.exceptions.CustomerNotFoundException;
+import com.saltaTech.customer.domain.repository.CustomerRepository;
+import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
+import com.saltaTech.organization.domain.persistence.Organization;
+import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.payment.application.exceptions.PaymentMethodFoundException;
+import com.saltaTech.payment.domain.dto.request.Advance;
+import com.saltaTech.payment.domain.persistence.Payment;
+import com.saltaTech.payment.domain.persistence.Transaction;
+import com.saltaTech.payment.domain.repository.PaymentMethodRepository;
+import com.saltaTech.payment.domain.util.Type;
+import com.saltaTech.product.domain.persistence.BranchStock;
+import com.saltaTech.product.domain.persistence.Product;
+import com.saltaTech.product.domain.repository.BranchStockRepository;
+import com.saltaTech.product.domain.repository.ProductRepository;
+import com.saltaTech.sale.application.exceptions.InsufficientStockException;
+import com.saltaTech.sale.application.exceptions.InvalidSaleTotalException;
+import com.saltaTech.sale.application.exceptions.SaleNotFoundException;
+import com.saltaTech.sale.application.mapper.SaleMapper;
+import com.saltaTech.sale.application.service.interfaces.SaleService;
+import com.saltaTech.sale.domain.dto.request.SaleCreateRequest;
+import com.saltaTech.sale.domain.dto.request.SalesDetailsCreateRequest;
+import com.saltaTech.sale.domain.dto.response.SalesDetailsResponse;
+import com.saltaTech.sale.domain.dto.response.SaleResponse;
+import com.saltaTech.sale.domain.persistence.Sale;
+import com.saltaTech.sale.domain.persistence.SaleDetails;
+import com.saltaTech.sale.domain.repository.SaleRepository;
+import com.saltaTech.sale.domain.util.SaleStatus;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+@Service
+@OrganizationSecured
+@Transactional
+public class SaleServiceImpl implements SaleService {
+	private final SaleMapper saleMapper;
+	private final SaleRepository saleRepository;
+	private final OrganizationRepository organizationRepository;
+	private final BranchRepository branchRepository;
+	private final ProductRepository productRepository;
+	private final BranchStockRepository branchStockRepository;
+	private final CustomerRepository customerRepository;
+	private final PaymentMethodRepository paymentMethodRepository;
+
+	public SaleServiceImpl(BranchRepository branchRepository, SaleMapper saleMapper, SaleRepository saleRepository, OrganizationRepository organizationRepository, ProductRepository productRepository, BranchStockRepository branchStockRepository, CustomerRepository customerRepository, PaymentMethodRepository paymentMethodRepository) {
+		this.branchRepository = branchRepository;
+		this.saleMapper = saleMapper;
+		this.saleRepository = saleRepository;
+		this.organizationRepository = organizationRepository;
+		this.productRepository = productRepository;
+		this.branchStockRepository = branchStockRepository;
+		this.customerRepository = customerRepository;
+		this.paymentMethodRepository = paymentMethodRepository;
+	}
+
+	@Override
+	public SalesDetailsResponse create(SaleCreateRequest createRequest) {
+		final var slug = OrganizationContext.getOrganizationSlug() ;
+		final var organization = organizationRepository
+				.findActiveBySlug(slug)
+				.orElseThrow(()-> new OrganizationNotFoundException(slug));
+		final var branch = branchRepository
+				.findEnabledByIdAndOrganizationSlug(createRequest.branchId(), slug)
+				.orElseThrow(()-> new BranchNotFoundException(createRequest.branchId()));
+		final var customer = customerRepository
+				.findById(createRequest.customerId())
+				.orElse(null);
+		final var productsIds = createRequest.items().stream()
+				.map(SalesDetailsCreateRequest::productId)
+				.toList();
+		var products = branchStockRepository.findAllByBranchIdAndProductIdIn(branch.getId(), productsIds);
+		if (products.size() != productsIds.size()) {
+			throw new IllegalArgumentException("Uno o más productos no existen");
+		}
+		final var items = createRequest.items();
+		var productsMap = products.stream().collect(Collectors.toMap(bs -> bs.getProduct().getId(), BranchStock::getProduct));
+		validateTotal(productsMap, items);
+		var branchStockMap = products.stream().collect(Collectors.toMap(bs -> bs.getProduct().getId(), bs -> bs));
+		validateStock(branchStockMap,items);
+		reduceStock(branchStockMap, items);
+		var sale = saleMapper.toSale(createRequest, organization, branch, customer);
+		sale.setSaleDetails(buildSalesDetails(createRequest.items(), productsMap, sale, organization));
+		applyAdvances(sale, createRequest, organization, branch);
+		return saleMapper.toSaleDetailResponse(saleRepository.save(sale));
+	}
+
+	@Transactional(readOnly = true)
+    public Page<SaleResponse> findAll(Pageable pageable) {
+        Page<Sale> sales = saleRepository.findAll(pageable);
+        return sales.map(saleMapper::toSaleResponse);
+    }
+
+
+    @Transactional(readOnly = true)
+    public SalesDetailsResponse findById(Long id) {
+        Sale sale = saleRepository.findById(id)
+                .orElseThrow(() -> new SaleNotFoundException(id));
+        return saleMapper.toSaleDetailResponse(sale);
+    }
+	private void validateTotal(Map<Long,Product> products, List<SalesDetailsCreateRequest> items) {
+		final var totalRequest = items.stream()
+				.map(i -> i.price().multiply(BigDecimal.valueOf(i.quantity())))
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		final var expectedTotal = items.stream()
+				.map(i -> {
+					Product product = products.get(i.productId());
+					if (product == null) {
+						throw new IllegalArgumentException("Producto no encontrado: " + i.productId());
+					}
+						return product.getPrice().multiply(BigDecimal.valueOf(i.quantity()));
+				})
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+
+		if (expectedTotal.compareTo(totalRequest) != 0) {
+			throw new InvalidSaleTotalException(
+					"El total calculado en el sistema (" + expectedTotal +
+							") no coincide con el total enviado en la venta (" + totalRequest + ")"
+			);
+		}
+	}
+
+	private void validateStock(Map<Long, BranchStock> branchStockMap, List<SalesDetailsCreateRequest> items) {
+		for (var item : items) {
+			var branchStock = branchStockMap.get(item.productId());
+			if (branchStock.getQuantity() < item.quantity()) {
+				throw new InsufficientStockException("No hay suficiente stock para el producto: " + branchStock.getProduct().getName() +
+						", en la Sucursal:" + branchStock.getBranch().getName());
+			}
+		}
+	}
+
+	private void reduceStock(Map<Long, BranchStock> branchStockMap, List<SalesDetailsCreateRequest> items) {
+		for (var item : items) {
+			var branchStock = branchStockMap.get(item.productId());
+			branchStock.setQuantity(branchStock.getQuantity() - item.quantity());
+			var product = branchStock.getProduct();
+			product.setAvailableQuantity(product.getAvailableQuantity() - item.quantity());
+		}
+		branchStockRepository.saveAll(branchStockMap.values());
+		productRepository.saveAll(branchStockMap.values().stream().map(BranchStock::getProduct).toList());
+	}
+	private List<SaleDetails> buildSalesDetails(List<SalesDetailsCreateRequest> items, Map<Long, Product> productsMap, Sale sale, Organization organization) {
+		return items.stream()
+				.map(it -> saleMapper.toSaleDetail(
+						organization,
+						sale,
+						productsMap.get(it.productId()),
+						it.quantity(),
+						it.price()
+				))
+				.toList();
+	}
+
+	private void applyAdvances(Sale sale, SaleCreateRequest createRequest, Organization organization,Branch branch) {
+		if (createRequest.advances() == null || createRequest.advances().isEmpty()) {
+			return;
+		}
+		var totalAmount = createRequest.advances().stream()
+				.map(Advance::amount)
+				.reduce(BigDecimal.ZERO, BigDecimal::add);
+		if (totalAmount.compareTo(sale.getTotal()) > 0) {
+			throw new IllegalArgumentException("El total de anticipos no puede superar el total de la venta");
+		}
+		if (totalAmount.compareTo(sale.getTotal()) == 0) {
+			sale.setStatus(SaleStatus.COMPLETADO);
+		}
+		var transaction = Transaction.builder()
+				.organization(organization)
+				.type(Type.IN)
+				.amount(totalAmount)
+				.build();
+		var payments = createRequest.advances().stream()
+				.map(advance -> toPayment(organization, branch, transaction, sale, advance))
+				.toList();
+
+		sale.setPayments(payments);
+	}
+
+	private Payment toPayment(Organization organization, Branch branch, Transaction transaction, Sale sale, Advance advance) {
+		var paymentMethod = paymentMethodRepository.findById(advance.paymentMethodId())
+				.orElseThrow(() -> new PaymentMethodFoundException(advance.paymentMethodId()));
+		return Payment.builder()
+				.organization(organization)
+				.branch(branch)
+				.transaction(transaction)
+				.sale(sale)
+				.amount(advance.amount())
+				.paymentMethod(paymentMethod)
+				.description(advance.description())
+				.build();
+	}
+}
