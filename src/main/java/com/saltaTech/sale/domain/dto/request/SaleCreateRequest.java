@@ -15,10 +15,6 @@ public record SaleCreateRequest(
 		@NotNull(message = "{generic.notNull}")
 		@Positive(message = "{generic.positive}")
 		Long customerId,
-		@JsonProperty("branch_id")
-		@NotNull(message = "{generic.notNull}")
-		@Positive(message = "{generic.positive}")
-		Long branchId,
 		@NotNull
 		@Valid
 		List<SalesDetailsCreateRequest> items,

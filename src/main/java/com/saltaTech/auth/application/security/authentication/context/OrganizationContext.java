@@ -1,6 +1,6 @@
 package com.saltaTech.auth.application.security.authentication.context;
 /**
- * Contexto de la organización  para la solicitud actual.
+ * Contexto de la organización para la solicitud actual.
  * <p>
  * Esta clase utilitaria utiliza variables {@link ThreadLocal} para almacenar y
  * proveer el Slug de la organización de forma aislada por hilo,
@@ -16,17 +16,16 @@ public class OrganizationContext {
 	}
 	/**
 	 * Establece el contexto actual de organización para el hilo en ejecución.
-	 *
-	 * @param organizationSlug Slug de la organización.
+	 * @param tenant el indentificador de la organización.
 	 */
-	public static void set(String organizationSlug) {
-		currentOrganization.set(organizationSlug);
+	public static void set(String tenant) {
+		currentOrganization.set(tenant);
 	}
 	/**
 	 * Obtiene el Slug de la organización almacenado en el contexto del hilo actual.
 	 * @return Slug de la organización, o {@code null} si no se ha establecido.
 	 */
-	public static String getOrganizationSlug() {
+	public static String getOrganizationTenant() {
 		return currentOrganization.get();
 	}
 

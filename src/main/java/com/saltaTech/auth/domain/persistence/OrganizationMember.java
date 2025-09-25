@@ -1,7 +1,6 @@
 package com.saltaTech.auth.domain.persistence;
 
 import com.saltaTech.auth.application.security.authentication.ports.MemberDetails;
-import com.saltaTech.branch.domain.persistence.BranchAccess;
 import com.saltaTech.organization.domain.persistence.Organization;
 import com.saltaTech.user.domain.persistence.User;
 import jakarta.persistence.Entity;
@@ -11,7 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -26,7 +24,7 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Entidad que representa a un miembro dentro de una organización.
+ * Entidad que representa a un miembro dentro de una Organizacion.
  * Implementa la interfaz {@link MemberDetails} para usarse en el sistema de seguridad.
  *
  * Cada miembro está asociado a un {@link User}, una {@link Organization} y un {@link Role}.
@@ -69,11 +67,6 @@ public class OrganizationMember implements MemberDetails {
 			nullable = false
 	)
 	private  Role role ;
-	@OneToMany(
-			fetch = FetchType.LAZY,
-			mappedBy = "organizationMember"
-	)
-	private Set<BranchAccess> branchAccesses;
 
 	@Override
 	public Collection<? extends GrantedAuthority> getAuthorities() {

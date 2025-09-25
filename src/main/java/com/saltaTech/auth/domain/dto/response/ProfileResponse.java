@@ -8,9 +8,7 @@ import java.util.List;
 public record ProfileResponse(
 		UserInfo user,
 		OrganizationInfo organization,
-		RoleInfo role,
-		@JsonProperty("branches_access")
-		List<BranchAccessInfo> branchAccess
+		RoleInfo role
 ) implements Serializable {
 
 	public record UserInfo(
@@ -36,10 +34,5 @@ public record ProfileResponse(
 			Long id,
 			String name,
 			List<String> permissions
-	) implements Serializable {}
-
-	public record BranchAccessInfo(
-			Long id,
-			String name
 	) implements Serializable {}
 } 

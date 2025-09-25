@@ -9,18 +9,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
 
-	/*
-    public UserResponse toUserResponse(User user) {
-        return new UserResponse(
-                user.getId(),
-                user.getFirstName(),
-                user.getLastName(),
-                user.getEmail(),
-                user.getPhoneNumber(),
-                user.isSuperUser()
-        );
-    } */
-
 	public User toUser (UserCreateRequest request){
 		if (request == null) return null;
 		return User.builder()
@@ -41,13 +29,8 @@ public class UserMapper {
 						member.getUser().getEmail(),
 						member.getUser().getPhoneNumber()
 				),
-				member.getOrganization().getSlug(),
-				member.getRole().getName(),
-				member.getBranchAccesses().stream()
-				.map(ba -> new RegisteredUser.BranchAccessInfo(
-						ba.getBranch().getName())
-				).toList()
-		);
+				member.getOrganization().getName(),
+				member.getRoleName());
 	}
 
 }

@@ -9,9 +9,6 @@ import java.io.Serializable;
 import java.math.BigDecimal;
 
 public record PaymentCreateRequest(
-		@JsonProperty("branch_id")
-		@Positive(message = "{generic.positive}")
-		Long branchId,
 		@JsonProperty("sale_id")
 		@Positive(message = "{generic.positive}")
 		Long saleId,

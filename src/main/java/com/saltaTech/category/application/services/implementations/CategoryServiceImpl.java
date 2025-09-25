@@ -1,6 +1,5 @@
 package com.saltaTech.category.application.services.implementations;
 import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
-import com.saltaTech.brand.application.exceptions.NoBrandsFoundException;
 import com.saltaTech.category.application.exceptions.CategoryNotFoundException;
 import com.saltaTech.category.application.exceptions.NoCategoriesFoundException;
 import com.saltaTech.category.application.mapper.CategoryMapper;
@@ -53,10 +52,10 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	public CategoryResponse create(CategoryCreateRequest createRequest) {
-		final var slug = OrganizationContext.getOrganizationSlug() ;
+		final var tenant = OrganizationContext.getOrganizationTenant() ;
 		final var organization = organizationRepository
-				.findActiveBySlug(slug)
-				.orElseThrow(()-> new OrganizationNotFoundException(slug)) ;
+				.findActiveByTenant(tenant)
+				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
 		return categoryMapper.toCategoryResponse(
 				categoryRepository.save(categoryMapper.toCategory(createRequest,organization))
 		);

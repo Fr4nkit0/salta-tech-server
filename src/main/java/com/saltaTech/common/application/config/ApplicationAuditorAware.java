@@ -23,12 +23,10 @@ public class ApplicationAuditorAware implements AuditorAware<User> {
 
 		Object principal = authentication.getPrincipal();
 
-		if (principal instanceof OrganizationMember orgMember) {
-			return Optional.of(orgMember.getUser());
-		} else if (principal instanceof User user) {
-			return Optional.of(user);
-		}
-
-		return Optional.empty();
+		return switch (principal) {
+			case OrganizationMember orgMember -> Optional.of(orgMember.getUser());
+			case User user -> Optional.of(user);
+			default -> Optional.empty();
+		};
 	}
 }

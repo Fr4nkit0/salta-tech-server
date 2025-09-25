@@ -85,13 +85,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 		// Extrae el email del usuario (subject) del token JWT.
 		final var email = jwtService.extractEmail(accessToken);
-		final var organizationSlugToken = jwtService.extractOrganizationSlug(accessToken);
-		final var organizationSlug = OrganizationContext.getOrganizationSlug();
-		if(!organizationSlugToken.equals(organizationSlug)){
-			log.error("Mismatched organization slug in token and request");
-			throw new TokenNotFoundException("Mismatched organization slug in token and header");
+		final var tenantToken = jwtService.extractOrganizationSlug(accessToken);
+		final var tenant = OrganizationContext.getOrganizationTenant();
+		if(!tenantToken.equals(tenant)){
+			log.error("Organization Tenant does not match the token and request");
+			throw new TokenNotFoundException("The organization tenant does not match the token and header");
 		}
-		final var username = email + "|" + organizationSlug ;
+		final var username = email + "|" + tenant ;
 		final var userDetails = customUserDetailsService.loadUserByUsername(username);
 		UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
 				userDetails,

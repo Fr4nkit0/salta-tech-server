@@ -15,7 +15,7 @@ public interface OrganizationRepository extends SoftDeleteRepository<Organizatio
 	@Query(
 			"SELECT CASE WHEN COUNT(o) > 0 THEN TRUE ELSE FALSE END FROM Organization o " +
 					"WHERE o.slug =?1 AND o.enabled = true")
-	boolean existsActiveBySlug(String slug);
+	boolean existsActiveByTenant(String tenant);
 	@Query("SELECT o FROM Organization o WHERE o.enabled = true AND o.slug = ?1")
-	Optional<Organization> findActiveBySlug(String slug);
+	Optional<Organization> findActiveByTenant(String tenant);
 }

@@ -16,8 +16,6 @@ DECLARE
   v_role_id BIGINT;
   v_user_id BIGINT;
   v_org_member_id BIGINT;
-  v_branch1_id BIGINT;
-  v_branch2_id BIGINT;
 BEGIN
 -- SUPER USER (si no existe)
 IF NOT EXISTS (SELECT 1 FROM users WHERE email='saltatech@gmail.com') THEN
@@ -123,27 +121,6 @@ FROM organizations_members
 WHERE user_id=v_user_id AND organization_id=v_org_id AND role_id=v_role_id;
 END IF;
 
--- BRANCHES
-IF NOT EXISTS (SELECT 1 FROM branches WHERE name='Local Huaico' AND organization_id=v_org_id) THEN
-INSERT INTO branches (name, organization_id, created_date, enabled, created_by)
-VALUES ('Local Huaico', v_org_id, NOW(), TRUE, v_org_member_id)
-RETURNING id INTO v_branch1_id;
-END IF;
-
-IF NOT EXISTS (SELECT 1 FROM branches WHERE name='Local Castañares' AND organization_id=v_org_id) THEN
-INSERT INTO branches (name, organization_id, created_date, enabled, created_by)
-VALUES ('Local Castañares', v_org_id, NOW(), TRUE, v_org_member_id)
-RETURNING id INTO v_branch2_id;
-END IF;
-
--- BRANCH ACCESS
-INSERT INTO branches_access (organization_member_id, branch_id)
-SELECT v_org_member_id, id FROM branches b
-WHERE b.organization_id=v_org_id
-AND NOT EXISTS (
-SELECT 1 FROM branches_access ba
-WHERE ba.organization_member_id=v_org_member_id AND ba.branch_id=b.id
-);
 
 END
 $$;

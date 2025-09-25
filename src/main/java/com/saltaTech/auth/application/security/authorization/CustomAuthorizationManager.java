@@ -134,8 +134,8 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
 
 		if (principal instanceof OrganizationMember member) {
 			String email = member.getUser().getEmail();
-			String orgSlug = OrganizationContext.getOrganizationSlug();
-			log.debug("Usuario {} autenticado como miembro de la organización {}", email, orgSlug);
+			String tenant = OrganizationContext.getOrganizationTenant();
+			log.debug("Usuario {} autenticado como miembro de la organización {}", email, tenant);
 
 			return obtainedOperations(member).stream()
 					.anyMatch(getOperationPredicate(url, method));

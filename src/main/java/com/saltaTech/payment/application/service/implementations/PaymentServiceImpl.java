@@ -1,8 +1,6 @@
 package com.saltaTech.payment.application.service.implementations;
 
 import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
-import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
-import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.common.application.aop.OrganizationSecured;
 import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
 import com.saltaTech.organization.domain.repository.OrganizationRepository;
@@ -33,13 +31,11 @@ public class PaymentServiceImpl implements PaymentService {
 	private final PaymentMapper paymentMapper;
 	private final PaymentRepository paymentRepository;
 	private final OrganizationRepository organizationRepository;
-	private final BranchRepository branchRepository;
 	private final PaymentMethodRepository paymentMethodRepository;
 	private final SaleRepository saleRepository;
 
 
-	public PaymentServiceImpl(BranchRepository branchRepository, PaymentMapper paymentMapper, PaymentRepository paymentRepository, OrganizationRepository organizationRepository, PaymentMethodRepository paymentMethodRepository, SaleRepository saleRepository) {
-		this.branchRepository = branchRepository;
+	public PaymentServiceImpl(PaymentMapper paymentMapper, PaymentRepository paymentRepository, OrganizationRepository organizationRepository, PaymentMethodRepository paymentMethodRepository, SaleRepository saleRepository) {
 		this.paymentMapper = paymentMapper;
 		this.paymentRepository = paymentRepository;
 		this.organizationRepository = organizationRepository;
@@ -64,18 +60,16 @@ public class PaymentServiceImpl implements PaymentService {
 
 	@Override
 	public PaymentResponse create(PaymentCreateRequest createRequest) {
-		final var slug = OrganizationContext.getOrganizationSlug() ;
+		final var tenant = OrganizationContext.getOrganizationTenant() ;
 		final var organization = organizationRepository
-				.findActiveBySlug(slug)
-				.orElseThrow(()-> new OrganizationNotFoundException(slug)) ;
-		final var branch = branchRepository.findById(createRequest.branchId())
-				.orElseThrow(()-> new BranchNotFoundException(createRequest.branchId()));
+				.findActiveByTenant(tenant)
+				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
 		final var paymentMethod = paymentMethodRepository.findById(createRequest.paymentMethodId())
 				.orElseThrow(()-> new PaymentMethodFoundException(createRequest.paymentMethodId()));
 		final var sale = saleRepository.findById(createRequest.saleId())
 				.orElse(null);
 		return paymentMapper.toPaymentResponse(
-				paymentRepository.save(paymentMapper.toPayment(createRequest,organization,branch,paymentMethod,sale))
+				paymentRepository.save(paymentMapper.toPayment(createRequest,organization,paymentMethod,sale))
 		);
 	}
 

@@ -57,9 +57,9 @@ public class CustomerServiceImpl implements CustomerService {
 
 	@Override
 	public CustomerDetailResponse create(CustomerCreateRequest customerCreateRequest) {
-		final var organizationSlug = OrganizationContext.getOrganizationSlug();
-		final var organization = organizationRepository.findActiveBySlug(organizationSlug)
-				.orElseThrow(()-> new OrganizationNotFoundException(organizationSlug));
+		final var tenant = OrganizationContext.getOrganizationTenant();
+		final var organization = organizationRepository.findActiveByTenant(tenant)
+				.orElseThrow(()-> new OrganizationNotFoundException(tenant));
 		var createCustomer = customerMapper.toCustomer(customerCreateRequest,organization);
 		return customerMapper.toCustomerDetailResponse(
 				customerRepository.save(createCustomer)

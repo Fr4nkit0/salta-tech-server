@@ -4,9 +4,6 @@ import com.saltaTech.auth.application.security.authentication.context.Organizati
 import com.saltaTech.auth.domain.persistence.OrganizationMember;
 import com.saltaTech.auth.domain.repository.OrganizationMemberRepository;
 import com.saltaTech.auth.domain.repository.RoleRepository;
-import com.saltaTech.branch.application.mapper.BranchMapper;
-import com.saltaTech.branch.domain.repository.BranchAccessRepository;
-import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.common.application.aop.OrganizationSecured;
 import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
 import com.saltaTech.organization.application.mapper.OrganizationMapper;
@@ -32,11 +29,9 @@ public class UserServiceImpl implements UserService {
     private final OrganizationRepository organizationRepository;
     private final RoleRepository roleRepository;
     private final OrganizationMemberRepository organizationMemberRepository;
-    private final BranchRepository branchRepository;
 
 
-	public UserServiceImpl(BranchRepository branchRepository, UserRepository userRepository, OrganizationRepository organizationRepository, RoleRepository roleRepository, OrganizationMemberRepository organizationMemberRepository, UserMapper userMapper, OrganizationMapper organizationMapper) {
-		this.branchRepository = branchRepository;
+	public UserServiceImpl(UserRepository userRepository, OrganizationRepository organizationRepository, RoleRepository roleRepository, OrganizationMemberRepository organizationMemberRepository, UserMapper userMapper, OrganizationMapper organizationMapper) {
 		this.userRepository = userRepository;
 		this.organizationRepository = organizationRepository;
 		this.roleRepository = roleRepository;
@@ -50,13 +45,12 @@ public class UserServiceImpl implements UserService {
     public RegisteredUser createUser(UserCreateRequest request) {
 		var user = userMapper.toUser(request);
 		userRepository.save(user);
-		final var organizationSlug = OrganizationContext.getOrganizationSlug();
-		final var organization = organizationRepository.findActiveBySlug(organizationSlug)
-				.orElseThrow(() -> new OrganizationNotFoundException(organizationSlug));
+		final var tenant = OrganizationContext.getOrganizationTenant();
+		final var organization = organizationRepository.findActiveByTenant(tenant)
+				.orElseThrow(() -> new OrganizationNotFoundException(tenant));
 		final var role = roleRepository.findById(request.roleId())
 				.orElseThrow(() -> new RuntimeException("Rol no encontrado"));
-		var branches = branchRepository.findAllById(request.branchIds());
-		OrganizationMember member = organizationMapper.toOrganizationMember(organization, user, role, branches);
+		OrganizationMember member = organizationMapper.toOrganizationMember(organization, user, role);
 		return userMapper.toRegisteredUser(organizationMemberRepository.save(member));
 	}
 

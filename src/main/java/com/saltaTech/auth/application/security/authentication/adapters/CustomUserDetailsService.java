@@ -26,7 +26,7 @@ import org.springframework.stereotype.Component;
  * <ul>
  *   <li>Que el usuario exista y esté activo.</li>
  *   <li>Si el usuario es un superusuario, devuelve un UserDetails con rol SUPERUSER.</li>
- *   <li>Para usuarios normales, valida que la organización exista y que el usuario pertenezca a ella.</li>
+ *   <li>Para usuarios normales, válida que la organización exista y que el usuario pertenezca a ella.</li>
  *   <li>Lanza excepciones específicas si alguna validación falla.</li>
  * </ul>
  *
@@ -83,13 +83,13 @@ public  class CustomUserDetailsService  implements UserDetailsService {
 		if (parts.length != 2) {
 			throw new UsernameNotFoundException("Formato inválido. Se esperaba email|organizationSlug");
 		}
-		String orgSlug = parts[1];
-		boolean orgExists = organizationRepository.existsActiveBySlug(orgSlug);
+		String tenant = parts[1];
+		boolean orgExists = organizationRepository.existsActiveByTenant(tenant);
 		if (!orgExists) {
 			throw new UsernameNotFoundException("Organización no encontrada o deshabilitada");
 		}
 
-		return organizationMemberRepository.findByUserEmailAndOrganizationSlug(email, orgSlug)
+		return organizationMemberRepository.findByUserEmailAndTenant(email, tenant)
 				.orElseThrow(() -> new UsernameNotFoundException("No pertenece a la organización indicada"));
 	}
 }

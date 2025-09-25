@@ -57,9 +57,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		log.debug("Entraste al Login");
 		final String email = authenticationRequest.email();
 		final String password = authenticationRequest.password();
-		final String organizationSlug = OrganizationContext.getOrganizationSlug();
+		final String tenant = OrganizationContext.getOrganizationTenant();
 
-		String principal = email + "|" + organizationSlug ;
+		String principal = email + "|" + tenant ;
 		UsernamePasswordAuthenticationToken authentication =
 				new UsernamePasswordAuthenticationToken(principal, password);
 		final Authentication userAuthentication = this.authenticationManager.authenticate(authentication);
@@ -100,7 +100,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		Map<String, Object> extraClaims = new HashMap<>();
 		extraClaims.put("name",userDetails.getUsername()) ;
 		extraClaims.put("authorities",userDetails.getAuthorities()) ;
-		extraClaims.put("X-Tenant", OrganizationContext.getOrganizationSlug());
+		extraClaims.put("X-Tenant", OrganizationContext.getOrganizationTenant());
 		return extraClaims;
 	}
 	private void addRefreshTokenCookie(HttpServletResponse response, String refreshToken, Date expiration) {

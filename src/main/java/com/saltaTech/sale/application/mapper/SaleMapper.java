@@ -1,6 +1,5 @@
 package com.saltaTech.sale.application.mapper;
 
-import com.saltaTech.branch.domain.persistence.Branch;
 import com.saltaTech.customer.application.mapper.CustomerMapper;
 import com.saltaTech.customer.domain.persistence.Customer;
 import com.saltaTech.organization.domain.persistence.Organization;
@@ -30,11 +29,10 @@ public class SaleMapper {
 		this.paymentMapper = paymentMapper;
 	}
 
-	public Sale toSale (SaleCreateRequest createRequest, Organization organization, Branch branch, Customer customer) {
+	public Sale toSale (SaleCreateRequest createRequest, Organization organization, Customer customer) {
 		if (createRequest==null) return null;
 		return Sale.builder()
 				.organization(organization)
-				.branch(branch)
 				.customer(customer)
 				.status(SaleStatus.PENDIENTE)
 				.total(createRequest.total())
@@ -60,7 +58,7 @@ public class SaleMapper {
 
 		return new SaleResponse(
 				sale.getId(),
-				sale.getBranch().getName(),
+				sale.getOrganization().getName(),
 				sale.getCustomer().getPerson().getFullName(),
 				sale.getStatus().toString(),
 				sale.getTotal(),
@@ -84,7 +82,7 @@ public class SaleMapper {
 
 		return new SalesDetailsResponse(
 				sale.getId(),
-				sale.getBranch().getName(),
+				sale.getOrganization().getName(),
 				customerMapper.toCustomerResponse(sale.getCustomer()),
 				sale.getStatus().toString(),
 				sale.getTotal(),

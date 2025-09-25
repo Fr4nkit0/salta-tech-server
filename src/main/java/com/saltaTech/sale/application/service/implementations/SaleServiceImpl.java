@@ -1,11 +1,7 @@
 package com.saltaTech.sale.application.service.implementations;
 
 import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
-import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
-import com.saltaTech.branch.domain.persistence.Branch;
-import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.common.application.aop.OrganizationSecured;
-import com.saltaTech.customer.application.exceptions.CustomerNotFoundException;
 import com.saltaTech.customer.domain.repository.CustomerRepository;
 import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
 import com.saltaTech.organization.domain.persistence.Organization;
@@ -16,9 +12,7 @@ import com.saltaTech.payment.domain.persistence.Payment;
 import com.saltaTech.payment.domain.persistence.Transaction;
 import com.saltaTech.payment.domain.repository.PaymentMethodRepository;
 import com.saltaTech.payment.domain.util.Type;
-import com.saltaTech.product.domain.persistence.BranchStock;
 import com.saltaTech.product.domain.persistence.Product;
-import com.saltaTech.product.domain.repository.BranchStockRepository;
 import com.saltaTech.product.domain.repository.ProductRepository;
 import com.saltaTech.sale.application.exceptions.InsufficientStockException;
 import com.saltaTech.sale.application.exceptions.InvalidSaleTotalException;
@@ -41,6 +35,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,51 +45,43 @@ public class SaleServiceImpl implements SaleService {
 	private final SaleMapper saleMapper;
 	private final SaleRepository saleRepository;
 	private final OrganizationRepository organizationRepository;
-	private final BranchRepository branchRepository;
 	private final ProductRepository productRepository;
-	private final BranchStockRepository branchStockRepository;
 	private final CustomerRepository customerRepository;
 	private final PaymentMethodRepository paymentMethodRepository;
 
-	public SaleServiceImpl(BranchRepository branchRepository, SaleMapper saleMapper, SaleRepository saleRepository, OrganizationRepository organizationRepository, ProductRepository productRepository, BranchStockRepository branchStockRepository, CustomerRepository customerRepository, PaymentMethodRepository paymentMethodRepository) {
-		this.branchRepository = branchRepository;
+	public SaleServiceImpl(CustomerRepository customerRepository, SaleMapper saleMapper, SaleRepository saleRepository, OrganizationRepository organizationRepository, ProductRepository productRepository, PaymentMethodRepository paymentMethodRepository) {
+		this.customerRepository = customerRepository;
 		this.saleMapper = saleMapper;
 		this.saleRepository = saleRepository;
 		this.organizationRepository = organizationRepository;
 		this.productRepository = productRepository;
-		this.branchStockRepository = branchStockRepository;
-		this.customerRepository = customerRepository;
 		this.paymentMethodRepository = paymentMethodRepository;
 	}
 
 	@Override
 	public SalesDetailsResponse create(SaleCreateRequest createRequest) {
-		final var slug = OrganizationContext.getOrganizationSlug() ;
+		final var tenant = OrganizationContext.getOrganizationTenant();
 		final var organization = organizationRepository
-				.findActiveBySlug(slug)
-				.orElseThrow(()-> new OrganizationNotFoundException(slug));
-		final var branch = branchRepository
-				.findEnabledByIdAndOrganizationSlug(createRequest.branchId(), slug)
-				.orElseThrow(()-> new BranchNotFoundException(createRequest.branchId()));
+				.findActiveByTenant(tenant)
+				.orElseThrow(()-> new OrganizationNotFoundException(tenant));
 		final var customer = customerRepository
 				.findById(createRequest.customerId())
 				.orElse(null);
 		final var productsIds = createRequest.items().stream()
 				.map(SalesDetailsCreateRequest::productId)
 				.toList();
-		var products = branchStockRepository.findAllByBranchIdAndProductIdIn(branch.getId(), productsIds);
+		var products = productRepository.findAllById(productsIds);
 		if (products.size() != productsIds.size()) {
-			throw new IllegalArgumentException("Uno o más productos no existen");
+			throw new IllegalArgumentException("One or more products do not exist");
 		}
 		final var items = createRequest.items();
-		var productsMap = products.stream().collect(Collectors.toMap(bs -> bs.getProduct().getId(), BranchStock::getProduct));
+		var productsMap = products.stream().collect(Collectors.toMap(Product::getId, Function.identity())) ;
 		validateTotal(productsMap, items);
-		var branchStockMap = products.stream().collect(Collectors.toMap(bs -> bs.getProduct().getId(), bs -> bs));
-		validateStock(branchStockMap,items);
-		reduceStock(branchStockMap, items);
-		var sale = saleMapper.toSale(createRequest, organization, branch, customer);
+		validateStock(productsMap,items);
+		reduceStock(productsMap, items);
+		var sale = saleMapper.toSale(createRequest, organization, customer);
 		sale.setSaleDetails(buildSalesDetails(createRequest.items(), productsMap, sale, organization));
-		applyAdvances(sale, createRequest, organization, branch);
+		applyAdvances(sale, createRequest, organization);
 		return saleMapper.toSaleDetailResponse(saleRepository.save(sale));
 	}
 
@@ -133,25 +120,21 @@ public class SaleServiceImpl implements SaleService {
 		}
 	}
 
-	private void validateStock(Map<Long, BranchStock> branchStockMap, List<SalesDetailsCreateRequest> items) {
+	private void validateStock(Map<Long, Product> products, List<SalesDetailsCreateRequest> items) {
 		for (var item : items) {
-			var branchStock = branchStockMap.get(item.productId());
-			if (branchStock.getQuantity() < item.quantity()) {
-				throw new InsufficientStockException("No hay suficiente stock para el producto: " + branchStock.getProduct().getName() +
-						", en la Sucursal:" + branchStock.getBranch().getName());
+			var product = products.get(item.productId());
+			if (product.getAvailableQuantity() < item.quantity()) {
+				throw new InsufficientStockException("No hay suficiente stock para el producto: " + product.getName());
 			}
 		}
 	}
 
-	private void reduceStock(Map<Long, BranchStock> branchStockMap, List<SalesDetailsCreateRequest> items) {
+	private void reduceStock(Map<Long, Product> products, List<SalesDetailsCreateRequest> items) {
 		for (var item : items) {
-			var branchStock = branchStockMap.get(item.productId());
-			branchStock.setQuantity(branchStock.getQuantity() - item.quantity());
-			var product = branchStock.getProduct();
+			var product = products.get(item.productId());
 			product.setAvailableQuantity(product.getAvailableQuantity() - item.quantity());
 		}
-		branchStockRepository.saveAll(branchStockMap.values());
-		productRepository.saveAll(branchStockMap.values().stream().map(BranchStock::getProduct).toList());
+		productRepository.saveAll(products.values());
 	}
 	private List<SaleDetails> buildSalesDetails(List<SalesDetailsCreateRequest> items, Map<Long, Product> productsMap, Sale sale, Organization organization) {
 		return items.stream()
@@ -165,7 +148,7 @@ public class SaleServiceImpl implements SaleService {
 				.toList();
 	}
 
-	private void applyAdvances(Sale sale, SaleCreateRequest createRequest, Organization organization,Branch branch) {
+	private void 	applyAdvances(Sale sale, SaleCreateRequest createRequest, Organization organization) {
 		if (createRequest.advances() == null || createRequest.advances().isEmpty()) {
 			return;
 		}
@@ -184,18 +167,17 @@ public class SaleServiceImpl implements SaleService {
 				.amount(totalAmount)
 				.build();
 		var payments = createRequest.advances().stream()
-				.map(advance -> toPayment(organization, branch, transaction, sale, advance))
+				.map(advance -> toPayment(organization, transaction, sale, advance))
 				.toList();
 
 		sale.setPayments(payments);
 	}
 
-	private Payment toPayment(Organization organization, Branch branch, Transaction transaction, Sale sale, Advance advance) {
+	private Payment toPayment(Organization organization, Transaction transaction, Sale sale, Advance advance) {
 		var paymentMethod = paymentMethodRepository.findById(advance.paymentMethodId())
 				.orElseThrow(() -> new PaymentMethodFoundException(advance.paymentMethodId()));
 		return Payment.builder()
 				.organization(organization)
-				.branch(branch)
 				.transaction(transaction)
 				.sale(sale)
 				.amount(advance.amount())

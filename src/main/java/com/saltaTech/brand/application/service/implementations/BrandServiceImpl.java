@@ -53,10 +53,10 @@ public class BrandServiceImpl implements BrandService {
 
 	@Override
 	public BrandResponse create(BrandCreateRequest createRequest) {
-		final var slug = OrganizationContext.getOrganizationSlug() ;
+		final var tenant = OrganizationContext.getOrganizationTenant() ;
 		final var organization = organizationRepository
-				.findActiveBySlug(slug)
-				.orElseThrow(()-> new OrganizationNotFoundException(slug)) ;
+				.findActiveByTenant(tenant)
+				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
 		return brandMapper.toBrandResponse(
 				brandRepository.save(brandMapper.toBrand(createRequest, organization))
 		);

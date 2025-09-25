@@ -1,7 +1,4 @@
 package com.saltaTech.organization.application.service.implementations;
-
-import com.saltaTech.branch.application.mapper.BranchMapper;
-import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
 import com.saltaTech.organization.application.mapper.OrganizationMapper;
 import com.saltaTech.organization.application.service.interfaces.OrganizationService;
@@ -21,16 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class OrganizationServiceImpl implements OrganizationService {
 	private final OrganizationRepository organizationRepository;
-	private final BranchRepository branchRepository;
 	private final OrganizationMapper organizationMapper;
-	private final BranchMapper branchMapper;
 
-	public OrganizationServiceImpl(BranchMapper branchMapper, OrganizationRepository organizationRepository,
-								   BranchRepository branchRepository, OrganizationMapper organizationMapper) {
-		this.branchMapper = branchMapper;
-		this.organizationRepository = organizationRepository;
-		this.branchRepository = branchRepository;
+	public OrganizationServiceImpl(OrganizationMapper organizationMapper, OrganizationRepository organizationRepository) {
 		this.organizationMapper = organizationMapper;
+		this.organizationRepository = organizationRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -54,7 +46,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 	@Override
 	public OrganizationResponse findOrganizationBySlug(String slug) {
 	    return organizationMapper.toOrganizationResponse(
-				organizationRepository.findActiveBySlug(slug)
+				organizationRepository.findActiveByTenant(slug)
 						.orElseThrow(()-> new OrganizationNotFoundException(slug))
 		);
 	}
@@ -62,7 +54,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 	@Override
 	public OrganizationResponse create(OrganizationCreateRequest createRequest) {
 		var savedOrganization = organizationRepository.save(organizationMapper.toOrganization(createRequest));
-		branchRepository.save(branchMapper.toBranch(createRequest.branch(),savedOrganization));
 		return organizationMapper.toOrganizationResponse(savedOrganization);
 	}
 

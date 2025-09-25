@@ -40,10 +40,10 @@ public class OrganizationController {
 	public ResponseEntity<OrganizationResponse> findById(@PathVariable Long organizationId){
 		return ResponseEntity.ok(organizationService.findById(organizationId));
 	}
-	@GetMapping("/slug")
+	@GetMapping("/tenant")
 	public ResponseEntity<OrganizationResponse> findById(){
 		return ResponseEntity.ok(organizationService
-				.findOrganizationBySlug(OrganizationContext.getOrganizationSlug()));
+				.findOrganizationBySlug(OrganizationContext.getOrganizationTenant()));
 	}
 	@PostMapping
 	public ResponseEntity<OrganizationResponse> create (@RequestBody OrganizationCreateRequest organizationCreateRequest,

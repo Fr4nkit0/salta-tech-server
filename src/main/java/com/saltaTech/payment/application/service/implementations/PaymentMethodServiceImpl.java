@@ -53,10 +53,10 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
 
 	@Override
 	public PaymentMethodResponse create(PaymentMethodCreateRequest createRequest) {
-		final var slug = OrganizationContext.getOrganizationSlug() ;
+		final var tenant = OrganizationContext.getOrganizationTenant() ;
 		final var organization = organizationRepository
-				.findActiveBySlug(slug)
-				.orElseThrow(()-> new OrganizationNotFoundException(slug)) ;
+				.findActiveByTenant(tenant)
+				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
 		return paymentMethodMapper.toPaymentMethodResponse(
 				paymentMethodRepository.save(
 						paymentMethodMapper.toPaymentMethod(createRequest,organization)

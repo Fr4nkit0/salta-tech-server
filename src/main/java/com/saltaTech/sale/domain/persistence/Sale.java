@@ -1,6 +1,5 @@
 package com.saltaTech.sale.domain.persistence;
 
-import com.saltaTech.branch.domain.persistence.Branch;
 import com.saltaTech.common.domain.persistence.Filters;
 import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
 import com.saltaTech.customer.domain.persistence.Customer;
@@ -42,9 +41,6 @@ import java.util.List;
 				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
 )
 public class Sale extends OrganizationFilterDefinition {
-	@ManyToOne(fetch = FetchType.EAGER, optional = false)
-	@JoinColumn(name = "branch_id", nullable = false)
-	private Branch branch;
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "customer_id")
 	private Customer customer;

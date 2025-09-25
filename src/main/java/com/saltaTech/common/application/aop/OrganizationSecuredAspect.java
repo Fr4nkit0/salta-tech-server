@@ -28,20 +28,20 @@ public class OrganizationSecuredAspect {
 		}
 
 		Session session = entityManager.unwrap(Session.class);
-		String organizationSlug = OrganizationContext.getOrganizationSlug();
+		String tenant= OrganizationContext.getOrganizationTenant();
 
-		if (organizationSlug != null) {
-			log.debug("Habilitando filtro de organización para slug: {}", organizationSlug);
+		if (tenant != null) {
+			log.debug("Enabling organization filter for tenant: {}", tenant);
 			session.enableFilter(Filters.ORGANIZATION_FILTER)
-					.setParameter(Filters.ORGANIZATION_SLUG_PARAM, organizationSlug);
+					.setParameter(Filters.ORGANIZATION_SLUG_PARAM, tenant);
 		}
 
 		try {
 			return joinPoint.proceed();
 		} finally {
-			if (organizationSlug != null) {
+			if (tenant != null) {
 				session.disableFilter(Filters.ORGANIZATION_FILTER);
-				log.debug("Filtro de organización deshabilitado");
+				log.debug("Organization filter disabled");
 			}
 		}
 	}

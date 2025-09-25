@@ -1,6 +1,5 @@
 package com.saltaTech.payment.domain.persistence;
 
-import com.saltaTech.branch.domain.persistence.Branch;
 import com.saltaTech.common.domain.persistence.Filters;
 import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
 import com.saltaTech.sale.domain.persistence.Sale;
@@ -36,9 +35,6 @@ import java.math.BigDecimal;
 				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
 )
 public class Payment extends OrganizationFilterDefinition {
-	@ManyToOne
-	@JoinColumn(name = "branch_id")
-	private Branch branch;
 	@ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "transaction_id", nullable = false)
 	private Transaction transaction;

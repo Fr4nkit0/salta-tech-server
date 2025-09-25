@@ -12,10 +12,9 @@ public interface OrganizationMemberRepository extends JpaRepository<Organization
 
 
 	@Query("SELECT om FROM OrganizationMember om " +
-			"JOIN FETCH om.branchAccesses ba " +
-			"WHERE om.user.email = ?1 " +          // <- espacio al final
+			"WHERE om.user.email = ?1 " +
 			"AND om.user.enabled = true " +
-			"AND om.organization.slug = ?2 " +      // <- espacio al final
+			"AND om.organization.slug = ?2 " +
 			"AND om.organization.enabled = true")
-	Optional<OrganizationMember> findByUserEmailAndOrganizationSlug(String email, String slug);
+	Optional<OrganizationMember> findByUserEmailAndTenant(String email, String slug);
 }
