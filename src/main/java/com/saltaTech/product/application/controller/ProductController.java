@@ -23,7 +23,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -83,7 +85,7 @@ public class ProductController {
 							schema = @Schema(implementation = ErrorResponse.class))
 			)
 	})
-	public ResponseEntity<ProductDetailResponse> findById (@RequestParam Long productId) {
+	public ResponseEntity<ProductDetailResponse> findById (@PathVariable Long productId) {
 		return ResponseEntity.ok(productService.findById(productId));
 	}
 	@PostMapping
@@ -109,7 +111,7 @@ public class ProductController {
 		final var newLocation = URI.create(baseURl+"/"+savedProduct.id());
 		return ResponseEntity.created(newLocation).body(savedProduct);
 	}
-	@PostMapping({"/{productId}"})
+	@PutMapping({"/{productId}"})
 	@Operation(summary = "Actualizar producto", description = "Actualiza los datos de un Producto existente")
 	@ApiResponses({
 			@ApiResponse(
@@ -125,12 +127,12 @@ public class ProductController {
 							schema = @Schema(implementation = ErrorResponse.class))
 			)
 	})
-	public ResponseEntity<ProductDetailResponse> update( @Parameter(description = "ID del producto a actualizar")@RequestParam Long productId,
+	public ResponseEntity<ProductDetailResponse> update( @Parameter(description = "ID del producto a actualizar")@PathVariable Long productId,
 														 @Parameter(description = "Datos del producto a actualizar")@Valid @RequestBody ProductUpdateRequest updateRequest) {
 		return ResponseEntity.ok(productService.update(productId, updateRequest));
 	}
 	@DeleteMapping("/{productId}")
-	public ResponseEntity<Void> delete(@RequestParam Long productId) {
+	public ResponseEntity<Void> delete(@PathVariable Long productId) {
 		productService.deleteById(productId);
 		return ResponseEntity.noContent().build();
 	}

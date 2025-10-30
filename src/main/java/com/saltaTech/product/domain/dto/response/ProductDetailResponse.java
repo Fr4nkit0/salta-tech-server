@@ -11,6 +11,7 @@ public record ProductDetailResponse(
 		CategoryResponse category,
 		BrandResponse brand,
 		String name,
+		String description,
 		BigDecimal price,
 		@JsonProperty("available_quantity")
 		Integer availableQuantity

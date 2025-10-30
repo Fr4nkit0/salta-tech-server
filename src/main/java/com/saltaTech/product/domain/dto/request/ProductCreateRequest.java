@@ -13,9 +13,6 @@ import java.math.BigDecimal;
 
 public record ProductCreateRequest(
 		@Positive
-		@JsonProperty("branch_id")
-		Long branchID,
-		@Positive
 		@JsonProperty("category_id")
 		Long categoryId,
 		@Positive

@@ -50,6 +50,7 @@ public class ProductMapper {
 				categoryMapper.toCategoryResponse(product.getCategory()),
 				brandMapper.toBrandResponse(product.getBrand()),
 				product.getName(),
+				product.getDescription(),
 				product.getPrice(),
 				product.getAvailableQuantity()
 		);

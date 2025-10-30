@@ -12,6 +12,8 @@ public record PaymentCreateRequest(
 		@JsonProperty("sale_id")
 		@Positive(message = "{generic.positive}")
 		Long saleId,
+		@NotNull(message = "{generic.notNull}")
+		@Positive(message = "{generic.positive}")
 		BigDecimal amount,
 		@JsonProperty("payment_method_id")
 		@NotNull(message = "{generic.notNull}")

@@ -1,7 +1,6 @@
 package com.saltaTech.sale.domain.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.saltaTech.payment.domain.dto.request.Advance;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -18,9 +17,9 @@ public record SaleCreateRequest(
 		@NotNull
 		@Valid
 		List<SalesDetailsCreateRequest> items,
-		@JsonProperty("advances")
+		@JsonProperty("payments")
 		@Valid
-		List<Advance> advances,
+		List<SalePaymentRequest> payments,
 		@NotNull(message = "{generic.notNull}")
 		@Positive(message = "{generic.positive}")
 		BigDecimal total

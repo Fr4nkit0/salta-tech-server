@@ -53,6 +53,8 @@ public class ProductSpecification implements Specification<Product> {
 					root.get("price"),searchCriteria.price());
 			predicates.add(priceEqual);
 		}
+		final var enabledPredicate = criteriaBuilder.isTrue(root.get("enabled"));
+		predicates.add(enabledPredicate);
 		return criteriaBuilder.and(predicates.toArray(new Predicate[0]));
 	}
 }

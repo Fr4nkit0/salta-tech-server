@@ -7,7 +7,6 @@ import com.saltaTech.organization.application.exceptions.OrganizationNotFoundExc
 import com.saltaTech.organization.domain.persistence.Organization;
 import com.saltaTech.organization.domain.repository.OrganizationRepository;
 import com.saltaTech.payment.application.exceptions.PaymentMethodFoundException;
-import com.saltaTech.payment.domain.dto.request.Advance;
 import com.saltaTech.payment.domain.persistence.Payment;
 import com.saltaTech.payment.domain.persistence.Transaction;
 import com.saltaTech.payment.domain.repository.PaymentMethodRepository;
@@ -16,16 +15,20 @@ import com.saltaTech.product.domain.persistence.Product;
 import com.saltaTech.product.domain.repository.ProductRepository;
 import com.saltaTech.sale.application.exceptions.InsufficientStockException;
 import com.saltaTech.sale.application.exceptions.InvalidSaleTotalException;
+import com.saltaTech.sale.application.exceptions.NoSalesFoundException;
 import com.saltaTech.sale.application.exceptions.SaleNotFoundException;
 import com.saltaTech.sale.application.mapper.SaleMapper;
 import com.saltaTech.sale.application.service.interfaces.SaleService;
 import com.saltaTech.sale.domain.dto.request.SaleCreateRequest;
+import com.saltaTech.sale.domain.dto.request.SalePaymentRequest;
+import com.saltaTech.sale.domain.dto.request.SaleSearchCriteria;
 import com.saltaTech.sale.domain.dto.request.SalesDetailsCreateRequest;
 import com.saltaTech.sale.domain.dto.response.SalesDetailsResponse;
 import com.saltaTech.sale.domain.dto.response.SaleResponse;
 import com.saltaTech.sale.domain.persistence.Sale;
 import com.saltaTech.sale.domain.persistence.SaleDetails;
 import com.saltaTech.sale.domain.repository.SaleRepository;
+import com.saltaTech.sale.domain.specification.SaleSpecification;
 import com.saltaTech.sale.domain.util.SaleStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -76,18 +79,22 @@ public class SaleServiceImpl implements SaleService {
 		}
 		final var items = createRequest.items();
 		var productsMap = products.stream().collect(Collectors.toMap(Product::getId, Function.identity())) ;
-		validateTotal(productsMap, items);
+		validateTotal(productsMap, items,createRequest.total());
 		validateStock(productsMap,items);
 		reduceStock(productsMap, items);
 		var sale = saleMapper.toSale(createRequest, organization, customer);
 		sale.setSaleDetails(buildSalesDetails(createRequest.items(), productsMap, sale, organization));
-		applyAdvances(sale, createRequest, organization);
+		applyPayments(sale, createRequest, organization);
 		return saleMapper.toSaleDetailResponse(saleRepository.save(sale));
 	}
 
 	@Transactional(readOnly = true)
-    public Page<SaleResponse> findAll(Pageable pageable) {
-        Page<Sale> sales = saleRepository.findAll(pageable);
+    public Page<SaleResponse> findAll(Pageable pageable, SaleSearchCriteria searchCriteria) {
+		final var salesSpecification = new SaleSpecification(searchCriteria);
+        Page<Sale> sales = saleRepository.findAll(salesSpecification, pageable);
+		if (sales.isEmpty()){
+			throw new NoSalesFoundException(searchCriteria);
+		}
         return sales.map(saleMapper::toSaleResponse);
     }
 
@@ -98,24 +105,34 @@ public class SaleServiceImpl implements SaleService {
                 .orElseThrow(() -> new SaleNotFoundException(id));
         return saleMapper.toSaleDetailResponse(sale);
     }
-	private void validateTotal(Map<Long,Product> products, List<SalesDetailsCreateRequest> items) {
-		final var totalRequest = items.stream()
-				.map(i -> i.price().multiply(BigDecimal.valueOf(i.quantity())))
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
-		final var expectedTotal = items.stream()
-				.map(i -> {
-					Product product = products.get(i.productId());
-					if (product == null) {
-						throw new IllegalArgumentException("Producto no encontrado: " + i.productId());
-					}
-						return product.getPrice().multiply(BigDecimal.valueOf(i.quantity()));
-				})
-				.reduce(BigDecimal.ZERO, BigDecimal::add);
+	private void validateTotal(Map<Long,Product> products, List<SalesDetailsCreateRequest> items,BigDecimal total) {
+		BigDecimal totalAmountRequest = BigDecimal.ZERO ;
+		BigDecimal expectedTotal = BigDecimal.ZERO;
 
-		if (expectedTotal.compareTo(totalRequest) != 0) {
+		for (SalesDetailsCreateRequest item: items){
+			Product product = products.get(item.productId());
+			if(product==null){
+				throw new IllegalArgumentException("Producto no encontrado: " + item.productId());
+			}
+			if (product.getPrice().compareTo(item.price())!= 0 ){
+				throw new IllegalArgumentException("El precio del producto " + product.getName() +
+						" no coincide con el precio registrado en el sistema.");
+			}
+			totalAmountRequest = totalAmountRequest.add(item.price().multiply(BigDecimal.valueOf(item.quantity())));
+			expectedTotal = expectedTotal.add(product.getPrice().multiply(BigDecimal.valueOf(item.quantity())));
+		}
+
+		if (expectedTotal.compareTo(total) != 0) {
 			throw new InvalidSaleTotalException(
 					"El total calculado en el sistema (" + expectedTotal +
-							") no coincide con el total enviado en la venta (" + totalRequest + ")"
+							") no coincide con el total enviado en la venta (" + total + ")"
+			);
+		}
+
+		if (expectedTotal.compareTo(totalAmountRequest) != 0) {
+			throw new InvalidSaleTotalException(
+					"El total calculado en el sistema (" + expectedTotal +
+							") no coincide con el total enviado en la venta (" + totalAmountRequest + ")"
 			);
 		}
 	}
@@ -148,12 +165,12 @@ public class SaleServiceImpl implements SaleService {
 				.toList();
 	}
 
-	private void 	applyAdvances(Sale sale, SaleCreateRequest createRequest, Organization organization) {
-		if (createRequest.advances() == null || createRequest.advances().isEmpty()) {
+	private void applyPayments(Sale sale, SaleCreateRequest createRequest, Organization organization) {
+		if (createRequest.payments() == null || createRequest.payments().isEmpty()) {
 			return;
 		}
-		var totalAmount = createRequest.advances().stream()
-				.map(Advance::amount)
+		var totalAmount = createRequest.payments().stream()
+				.map(SalePaymentRequest::amount)
 				.reduce(BigDecimal.ZERO, BigDecimal::add);
 		if (totalAmount.compareTo(sale.getTotal()) > 0) {
 			throw new IllegalArgumentException("El total de anticipos no puede superar el total de la venta");
@@ -166,23 +183,23 @@ public class SaleServiceImpl implements SaleService {
 				.type(Type.IN)
 				.amount(totalAmount)
 				.build();
-		var payments = createRequest.advances().stream()
-				.map(advance -> toPayment(organization, transaction, sale, advance))
+		var payments = createRequest.payments().stream()
+				.map(payment -> toPayment(organization, transaction, sale, payment))
 				.toList();
 
 		sale.setPayments(payments);
 	}
 
-	private Payment toPayment(Organization organization, Transaction transaction, Sale sale, Advance advance) {
-		var paymentMethod = paymentMethodRepository.findById(advance.paymentMethodId())
-				.orElseThrow(() -> new PaymentMethodFoundException(advance.paymentMethodId()));
+	private Payment toPayment(Organization organization, Transaction transaction, Sale sale, SalePaymentRequest payment) {
+		var paymentMethod = paymentMethodRepository.findById(payment.paymentMethodId())
+				.orElseThrow(() -> new PaymentMethodFoundException(payment.paymentMethodId()));
 		return Payment.builder()
 				.organization(organization)
 				.transaction(transaction)
 				.sale(sale)
-				.amount(advance.amount())
+				.amount(payment.amount())
 				.paymentMethod(paymentMethod)
-				.description(advance.description())
+				.description(payment.description())
 				.build();
 	}
 }

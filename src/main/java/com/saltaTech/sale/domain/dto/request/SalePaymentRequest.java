@@ -1,4 +1,4 @@
-package com.saltaTech.payment.domain.dto.request;
+package com.saltaTech.sale.domain.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotNull;
@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Size;
 
 import java.math.BigDecimal;
 
-public record Advance(
+public record SalePaymentRequest(
 		@NotNull(message = "{generic.notNull}")
 		@Positive(message = "{generic.positive}")
 		BigDecimal amount,

@@ -12,8 +12,6 @@ import java.util.List;
 
 public record SalesDetailsResponse(
         Long id,
-        @JsonProperty("branch_name")
-        String branchName,
         @JsonProperty("customer_info")
         CustomerResponse customerInfo,
         String status,
@@ -25,6 +23,7 @@ public record SalesDetailsResponse(
         String mainPaymentMethod,
         @JsonFormat(pattern = "yyyy/MM/dd")
         LocalDate date,
+		List<ItemsResponse> items,
         List<PaymentResponse> payments
 ) implements Serializable {
 }

@@ -1,4 +1,5 @@
 package com.saltaTech.organization.application.service.implementations;
+import com.saltaTech.organization.application.exceptions.NoOrganizationsFoundException;
 import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
 import com.saltaTech.organization.application.mapper.OrganizationMapper;
 import com.saltaTech.organization.application.service.interfaces.OrganizationService;
@@ -9,6 +10,7 @@ import com.saltaTech.organization.domain.dto.response.OrganizationResponse;
 import com.saltaTech.organization.domain.persistence.Organization;
 import com.saltaTech.organization.domain.repository.OrganizationRepository;
 import com.saltaTech.organization.domain.specification.OrganizationSpecification;
+import com.saltaTech.product.application.exceptions.NoProductsFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -31,7 +33,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 		final var organizationSpecification = new OrganizationSpecification(searchCriteria);
 		var organizations = organizationRepository.findAll(organizationSpecification, pageable);
 		if (organizations.isEmpty()) {
-			throw new RuntimeException("No existen organizaciones aun") ;
+			throw new NoOrganizationsFoundException(searchCriteria) ;
 		}
 		return organizations.map(organizationMapper::toOrganizationResponse);
 	}

@@ -8,6 +8,7 @@ import com.saltaTech.payment.domain.dto.response.PaymentResponse;
 import com.saltaTech.payment.domain.persistence.Payment;
 import com.saltaTech.product.domain.persistence.Product;
 import com.saltaTech.sale.domain.dto.request.SaleCreateRequest;
+import com.saltaTech.sale.domain.dto.response.ItemsResponse;
 import com.saltaTech.sale.domain.dto.response.SalesDetailsResponse;
 import com.saltaTech.sale.domain.dto.response.SaleResponse;
 import com.saltaTech.sale.domain.persistence.Sale;
@@ -76,13 +77,15 @@ public class SaleMapper {
 		String mainPaymentMethod = findMainPaymentMethod(sale);
 		BigDecimal balance = sale.getTotal().subtract(totalPaid);
 
-		List<PaymentResponse> paymentResponses = sale.getPayments().stream()
+		List<PaymentResponse> paymentsResponses = sale.getPayments().stream()
 				.map(paymentMapper::toPaymentResponse)
+				.toList();
+		List<ItemsResponse> itemsResponse = sale.getSaleDetails().stream()
+				.map(this::toItemsResponse)
 				.toList();
 
 		return new SalesDetailsResponse(
 				sale.getId(),
-				sale.getOrganization().getName(),
 				customerMapper.toCustomerResponse(sale.getCustomer()),
 				sale.getStatus().toString(),
 				sale.getTotal(),
@@ -90,7 +93,8 @@ public class SaleMapper {
 				balance,
 				mainPaymentMethod,
 				sale.getCreatedDate().toLocalDate(),
-				paymentResponses
+				itemsResponse,
+				paymentsResponses
 		);
 	}
 
@@ -115,6 +119,15 @@ public class SaleMapper {
 				.max(Map.Entry.comparingByValue())
 				.map(Map.Entry::getKey)
 				.orElse(null);
+	}
+	private ItemsResponse toItemsResponse(SaleDetails saleDetails){
+		if (saleDetails==null) return null;
+		return new ItemsResponse(
+				saleDetails.getProduct().getId(),
+				saleDetails.getProduct().getName(),
+				saleDetails.getQuantity(),
+				saleDetails.getPrice()
+		);
 	}
 
 }
