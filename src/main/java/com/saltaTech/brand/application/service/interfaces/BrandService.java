@@ -6,7 +6,7 @@ import com.saltaTech.brand.domain.dto.request.BrandCreateRequest;
 import com.saltaTech.brand.domain.dto.request.BrandSearchCriteria;
 import com.saltaTech.brand.domain.dto.request.BrandUpdateRequest;
 import com.saltaTech.brand.domain.dto.response.BrandResponse;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -40,7 +40,7 @@ public interface BrandService {
 	 *
 	 * @param createRequest Datos necesarios para crear la marca.
 	 * @return La marca creada como {@link BrandResponse}.
-	 * @throws OrganizationNotFoundException Si no se encuentra la organización actual.
+	 * @throws BranchNotFoundException Si no se encuentra la organización actual.
 	 */
 	BrandResponse create(BrandCreateRequest createRequest);
 

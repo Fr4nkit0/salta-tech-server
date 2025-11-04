@@ -1,8 +1,7 @@
 package com.saltaTech.auth.application.security.authentication.adapters;
 
-import com.saltaTech.auth.domain.repository.OrganizationMemberRepository;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
-import com.saltaTech.user.domain.persistence.User;
+import com.saltaTech.auth.domain.repository.BranchMemberRepository;
+import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.user.domain.repository.UserRepository;
 
 import lombok.extern.slf4j.Slf4j;
@@ -36,15 +35,15 @@ import org.springframework.stereotype.Component;
 @Component
 public  class CustomUserDetailsService  implements UserDetailsService {
 	private final UserRepository userRepository;
-	private final OrganizationRepository organizationRepository;
-	private final OrganizationMemberRepository organizationMemberRepository;
+	private final BranchRepository branchRepository;
+	private final BranchMemberRepository branchMemberRepository;
 
-	public CustomUserDetailsService(OrganizationMemberRepository organizationMemberRepository,
+	public CustomUserDetailsService(BranchMemberRepository branchMemberRepository,
 									UserRepository userRepository,
-									OrganizationRepository organizationRepository) {
-		this.organizationMemberRepository = organizationMemberRepository;
+									BranchRepository branchRepository) {
+		this.branchMemberRepository = branchMemberRepository;
 		this.userRepository = userRepository;
-		this.organizationRepository = organizationRepository;
+		this.branchRepository = branchRepository;
 	}
 
 	/**
@@ -53,19 +52,19 @@ public  class CustomUserDetailsService  implements UserDetailsService {
 	 * El parámetro {@code username}  tiene el formato:
 	 * <ul>
 	 *     <li>email — para superusuarios.</li>
-	 *     <li>email|organizationSlug — para usuarios asociados a una organización.</li>
+	 *     <li>email|tenant — para usuarios asociados a una organización.</li>
 	 * </ul>
 	 * <p>
 	 * El método realiza las siguientes validaciones:
 	 * <ol>
 	 *     <li>Busca el usuario activo por email.</li>
 	 *     <li>Si el usuario es superusuario, devuelve un UserDetails con rol SUPERUSER.</li>
-	 *     <li>Si no es superusuario, verifica que el formato contenga el slug de la organización.</li>
-	 *     <li>Verifica que la organización exista y esté activa.</li>
-	 *     <li>Verifica que el usuario pertenezca a la organización.</li>
+	 *     <li>Si no es superusuario, verifica que el formato contenga la indentificacion a la Sucursal.</li>
+	 *     <li>Verifica que la Sucursal exista y esté activa.</li>
+	 *     <li>Verifica que el usuario tenga Acceso a la Sucursal.</li>
 	 * </ol>
 	 *
-	 * @param username es identificador del usuario que puede incluir el slug de organización.
+	 * @param username es identificador del usuario que puede incluir la indentificacion de la Sucursal.
 	 * @return detalles del usuario para autenticación.
 	 * @throws UsernameNotFoundException si el usuario no existe, no pertenece a la organización,
 	 *                                  la organización no existe, o el formato es inválido.
@@ -74,22 +73,22 @@ public  class CustomUserDetailsService  implements UserDetailsService {
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
 		String[] parts = username.split("\\|");
-		String email = parts[0];
-		User user = userRepository.findActiveByEmail(email)
+		final var email = parts[0];
+		final var user = userRepository.findActiveByEmail(email)
 				.orElseThrow(() -> new UsernameNotFoundException("No existe o está deshabilitado"));
 		if (user.isSuperUser()) {
 			return user;
 		}
 		if (parts.length != 2) {
-			throw new UsernameNotFoundException("Formato inválido. Se esperaba email|organizationSlug");
+			throw new UsernameNotFoundException("Formato inválido. Se esperaba email|branchSlug");
 		}
-		String tenant = parts[1];
-		boolean orgExists = organizationRepository.existsActiveByTenant(tenant);
-		if (!orgExists) {
+		final var tenant = parts[1];
+		boolean branchExists = branchRepository.existsActiveByTenant(tenant);
+		if (!branchExists) {
 			throw new UsernameNotFoundException("Organización no encontrada o deshabilitada");
 		}
 
-		return organizationMemberRepository.findByUserEmailAndTenant(email, tenant)
+		return branchMemberRepository.findByUserEmailAndTenant(email, tenant)
 				.orElseThrow(() -> new UsernameNotFoundException("No pertenece a la organización indicada"));
 	}
 }

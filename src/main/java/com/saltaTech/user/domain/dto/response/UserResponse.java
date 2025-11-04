@@ -6,6 +6,6 @@ public record UserResponse(
 		String name,
 		String email,
 		String phoneNumber,
-		String organizationName,
+		String branch,
 		String role
 ) implements Serializable {}

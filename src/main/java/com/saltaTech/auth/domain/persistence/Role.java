@@ -1,6 +1,6 @@
 package com.saltaTech.auth.domain.persistence;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.saltaTech.organization.domain.persistence.Organization;
+import com.saltaTech.branch.domain.persistence.Branch;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -34,8 +34,8 @@ public class Role {
 	@Column(nullable = false)
 	private String name ;
 	@ManyToOne(fetch =  FetchType.EAGER,optional = false)
-	@JoinColumn(name = "organization_id",nullable = false)
-	private Organization organization;
+	@JoinColumn(name = "branch_id",nullable = false)
+	private Branch branch;
 	@OneToMany(
 			fetch = FetchType.EAGER,
 			mappedBy = "role"

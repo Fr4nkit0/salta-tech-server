@@ -3,7 +3,6 @@ package com.saltaTech.user.application.controller;
 import com.saltaTech.user.application.service.interfaces.UserService;
 import com.saltaTech.user.domain.dto.request.UserCreateRequest;
 import com.saltaTech.user.domain.dto.response.RegisteredUser;
-import com.saltaTech.user.domain.dto.response.UserResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;

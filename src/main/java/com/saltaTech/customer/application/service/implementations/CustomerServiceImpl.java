@@ -1,7 +1,7 @@
 package com.saltaTech.customer.application.service.implementations;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
-import com.saltaTech.common.application.aop.OrganizationSecured;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
+import com.saltaTech.common.application.aop.BranchSecured;
 import com.saltaTech.customer.domain.dto.request.CustomerUpdateRequest;
 import com.saltaTech.customer.application.exceptions.CustomerNotFoundException;
 import com.saltaTech.customer.application.exceptions.NoCustomersException;
@@ -15,8 +15,8 @@ import com.saltaTech.customer.domain.dto.response.CustomerResponse;
 import com.saltaTech.customer.domain.persistence.Customer;
 import com.saltaTech.customer.domain.repository.CustomerRepository;
 import com.saltaTech.customer.domain.specification.CustomerSpecification;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
+import com.saltaTech.branch.domain.repository.BranchRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -25,17 +25,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-@OrganizationSecured
+@BranchSecured
 @Transactional
 public class CustomerServiceImpl implements CustomerService {
 	private final CustomerRepository customerRepository ;
 	private final CustomerMapper customerMapper;
-	private final OrganizationRepository organizationRepository;
+	private final BranchRepository branchRepository;
 
-	public CustomerServiceImpl(CustomerMapper customerMapper, CustomerRepository customerRepository, OrganizationRepository organizationRepository) {
+	public CustomerServiceImpl(CustomerMapper customerMapper, CustomerRepository customerRepository, BranchRepository branchRepository) {
 		this.customerMapper = customerMapper;
 		this.customerRepository = customerRepository;
-		this.organizationRepository = organizationRepository;
+		this.branchRepository = branchRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -57,9 +57,9 @@ public class CustomerServiceImpl implements CustomerService {
 
 	@Override
 	public CustomerDetailResponse create(CustomerCreateRequest customerCreateRequest) {
-		final var tenant = OrganizationContext.getOrganizationTenant();
-		final var organization = organizationRepository.findActiveByTenant(tenant)
-				.orElseThrow(()-> new OrganizationNotFoundException(tenant));
+		final var tenant = BranchContext.getBranchTenant();
+		final var organization = branchRepository.findActiveByTenant(tenant)
+				.orElseThrow(()-> new BranchNotFoundException(tenant));
 		var createCustomer = customerMapper.toCustomer(customerCreateRequest,organization);
 		return customerMapper.toCustomerDetailResponse(
 				customerRepository.save(createCustomer)

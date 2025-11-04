@@ -1,6 +1,6 @@
 package com.saltaTech.payment.application.service.interfaces;
 
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
 import com.saltaTech.payment.application.exceptions.NoPaymentsFoundException;
 import com.saltaTech.payment.application.exceptions.PaymentMethodFoundException;
 import com.saltaTech.payment.application.exceptions.PaymentNotFoundException;
@@ -42,7 +42,7 @@ public interface PaymentService {
 	 *
 	 * @param createRequest Datos necesarios para crear el pago.
 	 * @return El pago creado como {@link PaymentResponse}.
-	 * @throws OrganizationNotFoundException Si no se encuentra la organización actual.
+	 * @throws BranchNotFoundException Si no se encuentra la organización actual.
 	 * @throws PaymentMethodFoundException   Si no se encuentra el método de pago indicado.
 	 */
 	PaymentResponse create(PaymentCreateRequest createRequest);

@@ -1,7 +1,7 @@
 package com.saltaTech.payment.domain.persistence;
 
 import com.saltaTech.common.domain.persistence.Filters;
-import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
+import com.saltaTech.common.domain.persistence.BranchFilterDefinition;
 import com.saltaTech.payment.domain.util.PaymentType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -26,11 +26,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "payment_methods")
 @EntityListeners(AuditingEntityListener.class)
 @Filter(
-		name = Filters.ORGANIZATION_FILTER,
-		condition = "EXISTS (SELECT 1 FROM organizations o WHERE "+
-				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
+		name = Filters.BRANCH_FILTER,
+		condition = "EXISTS (SELECT 1 FROM branches b WHERE "+
+				"b.id = branch_id AND b.identifier = :" + Filters.BRANCH_SLUG_PARAM + ")"
 )
-public class PaymentMethod extends OrganizationFilterDefinition {
+public class PaymentMethod extends BranchFilterDefinition {
 	@Enumerated(EnumType.STRING)
 	@Column(length = 30,nullable = false)
 	private PaymentType type ;

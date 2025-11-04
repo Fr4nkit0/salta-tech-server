@@ -1,11 +1,11 @@
 package com.saltaTech.product.application.service.implementations;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
 import com.saltaTech.brand.domain.repository.BrandRepository;
 import com.saltaTech.category.domain.repository.CategoryRepository;
-import com.saltaTech.common.application.aop.OrganizationSecured;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.common.application.aop.BranchSecured;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
+import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.product.application.exceptions.NoProductsFoundException;
 import com.saltaTech.product.application.exceptions.ProductNotFoundException;
 import com.saltaTech.product.application.mapper.ProductMapper;
@@ -27,20 +27,20 @@ import org.springframework.stereotype.Service;
 @Service
 @Transactional
 @Slf4j
-@OrganizationSecured
+@BranchSecured
 public class ProductServiceImpl implements ProductService {
 	private final ProductMapper productMapper;
 	private final ProductRepository productRepository;
-	private final OrganizationRepository organizationRepository;
-	private final CategoryRepository categoryRepository;
+	private final BranchRepository branchRepository;
 	private final BrandRepository brandRepository;
+	private final CategoryRepository categoryRepository;
 
-	public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository, OrganizationRepository organizationRepository, CategoryRepository categoryRepository, BrandRepository brandRepository) {
+	public ProductServiceImpl(ProductMapper productMapper, ProductRepository productRepository, BranchRepository branchRepository, CategoryRepository categoryRepository, BrandRepository brandRepository) {
 		this.productMapper = productMapper;
 		this.productRepository = productRepository;
-		this.organizationRepository = organizationRepository;
-		this.categoryRepository = categoryRepository;
+		this.branchRepository = branchRepository;
 		this.brandRepository = brandRepository;
+		this.categoryRepository = categoryRepository;
 	}
 
 	@Override
@@ -60,10 +60,10 @@ public class ProductServiceImpl implements ProductService {
 
 	@Override
 	public ProductDetailResponse create(ProductCreateRequest createRequest) {
-		final var tenant = OrganizationContext.getOrganizationTenant() ;
-		final var organization = organizationRepository
+		final var tenant = BranchContext.getBranchTenant() ;
+		final var organization = branchRepository
 				.findActiveByTenant(tenant)
-				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
+				.orElseThrow(()-> new BranchNotFoundException(tenant)) ;
 		final var category = categoryRepository.findById(createRequest.categoryId()).orElse(null);
 		final var brand = brandRepository.findById(createRequest.brandId()).orElse(null);
 		final var product = productRepository.save(productMapper.toProduct(createRequest, organization, category, brand));

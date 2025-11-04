@@ -1,9 +1,9 @@
 package com.saltaTech.payment.application.service.implementations;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
-import com.saltaTech.common.application.aop.OrganizationSecured;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
+import com.saltaTech.common.application.aop.BranchSecured;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
+import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.payment.application.exceptions.NoPaymentsFoundException;
 import com.saltaTech.payment.application.exceptions.PaymentMethodFoundException;
 import com.saltaTech.payment.application.mapper.PaymentMethodMapper;
@@ -21,14 +21,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@OrganizationSecured
+@BranchSecured
 @Transactional
 public class PaymentMethodServiceImpl implements PaymentMethodService {
 	private final PaymentMethodMapper paymentMethodMapper;
 	private final PaymentMethodRepository paymentMethodRepository;
-	private final OrganizationRepository organizationRepository;
+	private final BranchRepository organizationRepository;
 
-	public PaymentMethodServiceImpl(OrganizationRepository organizationRepository, PaymentMethodMapper paymentMethodMapper, PaymentMethodRepository paymentMethodRepository) {
+	public PaymentMethodServiceImpl(BranchRepository organizationRepository, PaymentMethodMapper paymentMethodMapper, PaymentMethodRepository paymentMethodRepository) {
 		this.organizationRepository = organizationRepository;
 		this.paymentMethodMapper = paymentMethodMapper;
 		this.paymentMethodRepository = paymentMethodRepository;
@@ -53,10 +53,10 @@ public class PaymentMethodServiceImpl implements PaymentMethodService {
 
 	@Override
 	public PaymentMethodResponse create(PaymentMethodCreateRequest createRequest) {
-		final var tenant = OrganizationContext.getOrganizationTenant() ;
+		final var tenant = BranchContext.getBranchTenant() ;
 		final var organization = organizationRepository
 				.findActiveByTenant(tenant)
-				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
+				.orElseThrow(()-> new BranchNotFoundException(tenant)) ;
 		return paymentMethodMapper.toPaymentMethodResponse(
 				paymentMethodRepository.save(
 						paymentMethodMapper.toPaymentMethod(createRequest,organization)

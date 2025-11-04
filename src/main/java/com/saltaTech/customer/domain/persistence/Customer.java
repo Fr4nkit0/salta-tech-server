@@ -1,7 +1,7 @@
 package com.saltaTech.customer.domain.persistence;
 
 import com.saltaTech.common.domain.persistence.Filters;
-import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
+import com.saltaTech.common.domain.persistence.BranchFilterDefinition;
 import com.saltaTech.common.domain.persistence.Person;
 import com.saltaTech.customer.domain.util.Status;
 import jakarta.persistence.CascadeType;
@@ -31,11 +31,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "customers")
 @EntityListeners(AuditingEntityListener.class)
 @Filter(
-		name = Filters.ORGANIZATION_FILTER,
-		condition = "EXISTS (SELECT 1 FROM organizations o WHERE "+
-				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
+		name = Filters.BRANCH_FILTER,
+		condition = "EXISTS (SELECT 1 FROM branches b WHERE "+
+				"b.id = branch_id AND b.identifier = :" + Filters.BRANCH_SLUG_PARAM + ")"
 )
-public class Customer extends OrganizationFilterDefinition {
+public class Customer extends BranchFilterDefinition {
 	@Enumerated(EnumType.STRING)
 	@Column(length = 100)
 	private Status status;

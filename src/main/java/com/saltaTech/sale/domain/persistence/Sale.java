@@ -1,7 +1,7 @@
 package com.saltaTech.sale.domain.persistence;
 
 import com.saltaTech.common.domain.persistence.Filters;
-import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
+import com.saltaTech.common.domain.persistence.BranchFilterDefinition;
 import com.saltaTech.customer.domain.persistence.Customer;
 import com.saltaTech.payment.domain.persistence.Payment;
 import com.saltaTech.sale.domain.util.SaleStatus;
@@ -36,11 +36,11 @@ import java.util.List;
 @Table(name = "sales")
 @EntityListeners(AuditingEntityListener.class)
 @Filter(
-		name = Filters.ORGANIZATION_FILTER,
-		condition = "EXISTS (SELECT 1 FROM organizations o WHERE "+
-				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
+		name = Filters.BRANCH_FILTER,
+		condition = "EXISTS (SELECT 1 FROM branches b WHERE " +
+				"b.id = branch_id AND b.identifier = :" + Filters.BRANCH_SLUG_PARAM + ")"
 )
-public class Sale extends OrganizationFilterDefinition {
+public class Sale extends BranchFilterDefinition {
 	@ManyToOne(fetch = FetchType.EAGER)
 	@JoinColumn(name = "customer_id")
 	private Customer customer;

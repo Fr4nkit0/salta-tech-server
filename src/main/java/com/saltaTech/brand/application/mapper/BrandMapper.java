@@ -4,15 +4,15 @@ import com.saltaTech.brand.domain.dto.request.BrandCreateRequest;
 import com.saltaTech.brand.domain.dto.request.BrandUpdateRequest;
 import com.saltaTech.brand.domain.dto.response.BrandResponse;
 import com.saltaTech.brand.domain.persistence.Brand;
-import com.saltaTech.organization.domain.persistence.Organization;
+import com.saltaTech.branch.domain.persistence.Branch;
 import org.springframework.stereotype.Service;
 
 @Service
 public class BrandMapper {
-    public Brand toBrand(BrandCreateRequest createRequest, Organization organization){
+    public Brand toBrand(BrandCreateRequest createRequest, Branch branch){
         if(createRequest == null) return null;
         return Brand.builder()
-                .organization(organization)
+                .branch(branch)
                 .name(createRequest.name())
                 .build();
     }

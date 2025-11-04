@@ -8,7 +8,7 @@ import com.saltaTech.customer.domain.dto.request.CustomerUpdateRequest;
 import com.saltaTech.customer.domain.dto.request.CustomerStatusUpdateRequest;
 import com.saltaTech.customer.domain.dto.response.CustomerDetailResponse;
 import com.saltaTech.customer.domain.dto.response.CustomerResponse;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -43,7 +43,7 @@ public interface CustomerService {
 	 *
 	 * @param customerCreateRequest Datos necesarios para crear el cliente.
 	 * @return El cliente creado como {@link CustomerDetailResponse}.
-	 * @throws OrganizationNotFoundException Si la organización actual no existe.
+	 * @throws BranchNotFoundException Si la organización actual no existe.
 	 */
 	CustomerDetailResponse create(CustomerCreateRequest customerCreateRequest);
 

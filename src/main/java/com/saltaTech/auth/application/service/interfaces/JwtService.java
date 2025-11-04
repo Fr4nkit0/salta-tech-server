@@ -14,6 +14,6 @@ public interface JwtService {
 	String extractJwtFromRequest(HttpServletRequest request);
 	String extractRefreshTokenFromCookie (HttpServletRequest request);
 	Date extractExpiration(String jwt);
-	String extractOrganizationSlug (String jwt);
+	String extractBranchIndentifier (String jwt);
 	boolean validateToken (String jwt);
 }

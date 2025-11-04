@@ -37,7 +37,7 @@ import java.net.URI;
 @RequestMapping("customers")
 @RestController
 @SecurityRequirement(name = "Bearer Authentication")
-@SecurityRequirement(name = "Organization")
+@SecurityRequirement(name = "Branch")
 @Tag(name = "Clientes",description = "Contiene todas las operaciones relacionadas con los clientes de las Organizaciones de la aplicacion.")
 public class CustomerController {
 	private final CustomerService customerService;

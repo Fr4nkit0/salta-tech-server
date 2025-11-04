@@ -1,10 +1,10 @@
 package com.saltaTech.product.application.mapper;
 
+import com.saltaTech.branch.domain.persistence.Branch;
 import com.saltaTech.brand.application.mapper.BrandMapper;
 import com.saltaTech.brand.domain.persistence.Brand;
 import com.saltaTech.category.application.mapper.CategoryMapper;
 import com.saltaTech.category.domain.persistence.Category;
-import com.saltaTech.organization.domain.persistence.Organization;
 import com.saltaTech.product.domain.dto.request.ProductCreateRequest;
 import com.saltaTech.product.domain.dto.request.ProductUpdateRequest;
 import com.saltaTech.product.domain.dto.response.ProductDetailResponse;
@@ -22,9 +22,9 @@ public class ProductMapper {
 		this.categoryMapper = categoryMapper;
 	}
 
-	public Product toProduct (ProductCreateRequest createRequest, Organization organization, Category category, Brand brand){
+	public Product toProduct (ProductCreateRequest createRequest, Branch branch, Category category, Brand brand){
 		return Product.builder()
-				.organization(organization)
+				.branch(branch)
 				.category(category)
 				.brand(brand)
 				.name(createRequest.name())

@@ -1,6 +1,6 @@
 package com.saltaTech.payment.application.mapper;
 
-import com.saltaTech.organization.domain.persistence.Organization;
+import com.saltaTech.branch.domain.persistence.Branch;
 import com.saltaTech.payment.domain.dto.request.PaymentCreateRequest;
 import com.saltaTech.payment.domain.dto.request.PaymentUpdateRequest;
 import com.saltaTech.payment.domain.dto.response.PaymentResponse;
@@ -15,15 +15,15 @@ import org.springframework.util.StringUtils;
 
 @Service
 public class PaymentMapper {
-	public Payment toPayment (PaymentCreateRequest createRequest, Organization organization, PaymentMethod paymentMethod, Sale sale){
+	public Payment toPayment (PaymentCreateRequest createRequest, Branch branch, PaymentMethod paymentMethod, Sale sale){
 		if (createRequest == null) return  null;
 		final var transaction = Transaction.builder()
-				.organization(organization)
+				.branch(branch)
 				.type(Type.IN)
 				.amount(createRequest.amount())
 				.build();
 		return  Payment.builder()
-				.organization(organization)
+				.branch(branch)
 				.transaction(transaction)
 				.sale(sale)
 				.paymentMethod(paymentMethod)

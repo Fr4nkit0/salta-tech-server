@@ -1,7 +1,7 @@
 package com.saltaTech.brand.domain.persistence;
 
 import com.saltaTech.common.domain.persistence.Filters;
-import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
+import com.saltaTech.common.domain.persistence.BranchFilterDefinition;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -23,11 +23,11 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @Table(name = "brands")
 @EntityListeners(AuditingEntityListener.class)
 @Filter(
-		name = Filters.ORGANIZATION_FILTER,
-		condition = "EXISTS (SELECT 1 FROM organizations o WHERE "+
-				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
+		name = Filters.BRANCH_FILTER,
+		condition = "EXISTS (SELECT 1 FROM branches b WHERE "+
+				"b.id = branch_id AND b.identifier = :" + Filters.BRANCH_SLUG_PARAM + ")"
 )
-public class Brand extends OrganizationFilterDefinition {
+public class Brand extends BranchFilterDefinition {
 	@Column(nullable = false,length = 30)
 	private String name;
 }

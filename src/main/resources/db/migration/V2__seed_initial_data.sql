@@ -4,7 +4,7 @@ DO
 $$
 DECLARE
   v_super_user_id BIGINT;
-  v_org_id BIGINT;
+  v_branch_id BIGINT;
   v_module_auth BIGINT;
   v_module_customers BIGINT;
   v_module_sales BIGINT;
@@ -30,13 +30,13 @@ VALUES (
 RETURNING id INTO v_super_user_id;
 END IF;
 
--- ORGANIZACIÓN (si no existe)
-IF NOT EXISTS (SELECT 1 FROM organizations WHERE slug='market-la-familia') THEN
-INSERT INTO organizations (name, slug, created_date, enabled)
-VALUES ('LA FAMILIA ','market-la-familia',NOW(), TRUE)
-RETURNING id INTO v_org_id;
+-- Branch (si no existe)
+IF NOT EXISTS (SELECT 1 FROM branches WHERE identifier='sauce') THEN
+INSERT INTO branches (name, identifier, created_date, enabled)
+VALUES ('LA FAMILIA ','sauce',NOW(), TRUE)
+RETURNING id INTO v_branch_id;
 ELSE
-SELECT id INTO v_org_id FROM organizations WHERE slug='market-la-familia';
+SELECT id INTO v_branch_id FROM branches WHERE identifier='sauce';
 END IF;
 
 -- MÓDULOS
@@ -80,12 +80,12 @@ SELECT * FROM (VALUES
 WHERE NOT EXISTS (SELECT 1 FROM operations WHERE name=t.name);
 
 -- ROL
-IF NOT EXISTS (SELECT 1 FROM roles WHERE name='ADMINISTRATOR' AND organization_id=v_org_id) THEN
-INSERT INTO roles (name, organization_id)
-VALUES ('ADMINISTRATOR', v_org_id)
+IF NOT EXISTS (SELECT 1 FROM roles WHERE name='ADMINISTRATOR' AND branch_id=v_branch_id) THEN
+INSERT INTO roles (name, branch_id)
+VALUES ('ADMINISTRATOR', v_branch_id)
 RETURNING id INTO v_role_id;
 ELSE
-SELECT id INTO v_role_id FROM roles WHERE name='ADMINISTRATOR' AND organization_id=v_org_id;
+SELECT id INTO v_role_id FROM roles WHERE name='ADMINISTRATOR' AND branch_id=v_branch_id;
 END IF;
 
 -- ASIGNAR PERMISOS AL ROL
@@ -109,16 +109,16 @@ END IF;
 
 -- ORGANIZATION MEMBER
 IF NOT EXISTS (
-SELECT 1 FROM organizations_members
-WHERE user_id=v_user_id AND organization_id=v_org_id AND role_id=v_role_id
+SELECT 1 FROM branches_members
+WHERE user_id=v_user_id AND branch_id=v_branch_id AND role_id=v_role_id
 ) THEN
-INSERT INTO organizations_members (user_id, organization_id, role_id)
-VALUES (v_user_id, v_org_id, v_role_id)
+INSERT INTO branches_members (user_id, branch_id, role_id)
+VALUES (v_user_id, v_branch_id, v_role_id)
 RETURNING id INTO v_org_member_id;
 ELSE
 SELECT id INTO v_org_member_id
-FROM organizations_members
-WHERE user_id=v_user_id AND organization_id=v_org_id AND role_id=v_role_id;
+FROM branches_members
+WHERE user_id=v_user_id AND branch_id=v_branch_id AND role_id=v_role_id;
 END IF;
 
 

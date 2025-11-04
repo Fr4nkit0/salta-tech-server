@@ -1,7 +1,7 @@
 package com.saltaTech.auth.application.service.implementations;
 
 import com.saltaTech.auth.application.exceptions.TokenNotFoundException;
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
 import com.saltaTech.auth.application.service.interfaces.AuthenticationService;
 import com.saltaTech.auth.application.service.interfaces.JwtService;
 import com.saltaTech.auth.application.service.interfaces.RefreshTokenService;
@@ -13,7 +13,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
@@ -55,19 +54,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 	public AuthenticationResponse login(AuthenticationRequest authenticationRequest,
 										HttpServletResponse response) {
 		log.debug("Entraste al Login");
-		final String email = authenticationRequest.email();
-		final String password = authenticationRequest.password();
-		final String tenant = OrganizationContext.getOrganizationTenant();
+		final var email = authenticationRequest.email();
+		final var password = authenticationRequest.password();
+		final var tenant = BranchContext.getBranchTenant();
 
-		String principal = email + "|" + tenant ;
+		final var principal = email + "|" + tenant ;
 		UsernamePasswordAuthenticationToken authentication =
 				new UsernamePasswordAuthenticationToken(principal, password);
-		final Authentication userAuthentication = this.authenticationManager.authenticate(authentication);
-		final UserDetails userDetails = (UserDetails) userAuthentication.getPrincipal();
-		final Map<String, Object> extraClaims = this.generateExtraClaims(userDetails);
+		final var userAuthentication = this.authenticationManager.authenticate(authentication);
+		final var userDetails = (UserDetails) userAuthentication.getPrincipal();
+		final var extraClaims = this.generateExtraClaims(userDetails);
 		final var accessToken = jwtService.generateAccessToken(userDetails,extraClaims);
 		final var refreshToken = jwtService.generateRefreshToken(userDetails,extraClaims);
-		final Date refreshTokenExpiration = jwtService.extractExpiration(refreshToken);
+		final var refreshTokenExpiration = jwtService.extractExpiration(refreshToken);
 		refreshTokenService.saveToken(refreshToken,userDetails,refreshTokenExpiration) ;
 		addRefreshTokenCookie(response,refreshToken,refreshTokenExpiration);
 		return new AuthenticationResponse(accessToken);
@@ -83,8 +82,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 			throw new TokenNotFoundException("Invalid refresh token");
 		}
 		String email = jwtService.extractEmail(refreshToken);
-		String organizationSlug = jwtService.extractOrganizationSlug(refreshToken);
-		String username = email+"|"+organizationSlug;
+		String indentifier = jwtService.extractBranchIndentifier(refreshToken);
+		String username = email+"|"+indentifier;
 		UserDetails userDetails = userDetailsService.loadUserByUsername(username);
 		Map<String, Object> extraClaims = this.generateExtraClaims(userDetails);
 		String newAccessToken = jwtService.generateAccessToken(userDetails, extraClaims);
@@ -100,7 +99,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 		Map<String, Object> extraClaims = new HashMap<>();
 		extraClaims.put("name",userDetails.getUsername()) ;
 		extraClaims.put("authorities",userDetails.getAuthorities()) ;
-		extraClaims.put("X-Tenant", OrganizationContext.getOrganizationTenant());
+		extraClaims.put("X-Tenant", BranchContext.getBranchTenant());
 		return extraClaims;
 	}
 	private void addRefreshTokenCookie(HttpServletResponse response, String refreshToken, Date expiration) {

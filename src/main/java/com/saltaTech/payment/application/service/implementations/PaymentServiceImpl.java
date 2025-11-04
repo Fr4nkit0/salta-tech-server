@@ -1,9 +1,9 @@
 package com.saltaTech.payment.application.service.implementations;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
-import com.saltaTech.common.application.aop.OrganizationSecured;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
+import com.saltaTech.common.application.aop.BranchSecured;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
+import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.payment.application.exceptions.NoPaymentsFoundException;
 import com.saltaTech.payment.application.exceptions.PaymentMethodFoundException;
 import com.saltaTech.payment.application.exceptions.PaymentNotFoundException;
@@ -25,17 +25,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 @Service
-@OrganizationSecured
+@BranchSecured
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
 	private final PaymentMapper paymentMapper;
 	private final PaymentRepository paymentRepository;
-	private final OrganizationRepository organizationRepository;
+	private final BranchRepository organizationRepository;
 	private final PaymentMethodRepository paymentMethodRepository;
 	private final SaleRepository saleRepository;
 
 
-	public PaymentServiceImpl(PaymentMapper paymentMapper, PaymentRepository paymentRepository, OrganizationRepository organizationRepository, PaymentMethodRepository paymentMethodRepository, SaleRepository saleRepository) {
+	public PaymentServiceImpl(PaymentMapper paymentMapper, PaymentRepository paymentRepository, BranchRepository organizationRepository, PaymentMethodRepository paymentMethodRepository, SaleRepository saleRepository) {
 		this.paymentMapper = paymentMapper;
 		this.paymentRepository = paymentRepository;
 		this.organizationRepository = organizationRepository;
@@ -60,10 +60,10 @@ public class PaymentServiceImpl implements PaymentService {
 
 	@Override
 	public PaymentResponse create(PaymentCreateRequest createRequest) {
-		final var tenant = OrganizationContext.getOrganizationTenant() ;
+		final var tenant = BranchContext.getBranchTenant() ;
 		final var organization = organizationRepository
 				.findActiveByTenant(tenant)
-				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
+				.orElseThrow(()-> new BranchNotFoundException(tenant)) ;
 		final var paymentMethod = paymentMethodRepository.findById(createRequest.paymentMethodId())
 				.orElseThrow(()-> new PaymentMethodFoundException(createRequest.paymentMethodId()));
 		final var sale = saleRepository.findById(createRequest.saleId())

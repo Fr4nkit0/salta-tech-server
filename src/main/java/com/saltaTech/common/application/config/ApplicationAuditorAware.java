@@ -1,6 +1,6 @@
 package com.saltaTech.common.application.config;
 
-import com.saltaTech.auth.domain.persistence.OrganizationMember;
+import com.saltaTech.auth.domain.persistence.BranchMember;
 import com.saltaTech.user.domain.persistence.User;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
@@ -24,7 +24,7 @@ public class ApplicationAuditorAware implements AuditorAware<User> {
 		Object principal = authentication.getPrincipal();
 
 		return switch (principal) {
-			case OrganizationMember orgMember -> Optional.of(orgMember.getUser());
+			case BranchMember orgMember -> Optional.of(orgMember.getUser());
 			case User user -> Optional.of(user);
 			default -> Optional.empty();
 		};

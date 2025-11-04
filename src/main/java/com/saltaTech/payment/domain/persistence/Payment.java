@@ -1,7 +1,7 @@
 package com.saltaTech.payment.domain.persistence;
 
 import com.saltaTech.common.domain.persistence.Filters;
-import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
+import com.saltaTech.common.domain.persistence.BranchFilterDefinition;
 import com.saltaTech.sale.domain.persistence.Sale;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -30,11 +30,11 @@ import java.math.BigDecimal;
 @Table(name = "payments")
 @EntityListeners(AuditingEntityListener.class)
 @Filter(
-		name = Filters.ORGANIZATION_FILTER,
-		condition = "EXISTS (SELECT 1 FROM organizations o WHERE "+
-				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
+		name = Filters.BRANCH_FILTER,
+		condition = "EXISTS (SELECT 1 FROM branches b WHERE "+
+				"b.id = branch_id AND b.identifier = :" + Filters.BRANCH_SLUG_PARAM + ")"
 )
-public class Payment extends OrganizationFilterDefinition {
+public class Payment extends BranchFilterDefinition {
 	@ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.EAGER, optional = false)
 	@JoinColumn(name = "transaction_id", nullable = false)
 	private Transaction transaction;

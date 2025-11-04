@@ -33,8 +33,8 @@ import java.time.LocalDate;
 @RequestMapping("sales")
 @RestController
 @SecurityRequirement(name = "Bearer Authentication")
-@SecurityRequirement(name = "Organization")
-@Tag(name = "Ventas",description = "Contiene todas las operaciones relacionadas con las ventas de las organizaciones de la aplicacion.")
+@SecurityRequirement(name = "Branch")
+@Tag(name = "Ventas",description = "Contiene todas las operaciones relacionadas con las ventas de las sucursales de la aplicacion.")
 public class SaleController {
 
     private final SaleService saleService;

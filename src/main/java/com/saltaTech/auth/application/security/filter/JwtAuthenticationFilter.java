@@ -2,7 +2,7 @@ package com.saltaTech.auth.application.security.filter;
 
 import com.saltaTech.auth.application.exceptions.TokenNotFoundException;
 import com.saltaTech.auth.application.security.authentication.adapters.CustomUserDetailsService;
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
 import com.saltaTech.auth.application.service.interfaces.JwtService;
 
 import jakarta.servlet.FilterChain;
@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.WebAuthenticationDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -25,7 +24,7 @@ import java.io.IOException;
  * en cada solicitud HTTP.
  * <p>
  * Este filtro extrae el token JWT de la solicitud, válida su firma, fecha de expiración
- * y consistencia con la organización actual definida en el contexto. Luego,
+ * y la consistencia de la Sucursal actual definida en el contexto. Luego,
  * auténtica al usuario y establece su información en el {@link SecurityContextHolder}
  * para permitir el acceso seguro a los recursos protegidos.
  * <p>
@@ -40,7 +39,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	private final CustomUserDetailsService customUserDetailsService;
 	/**
 	 * Constructor para inyectar las dependencias necesarias para la autenticación JWT.
-	 *
 	 * @param jwtService servicio validación de tokens JWT.
 	 * @param customUserDetailsService repositorio para consultar miembros de la organización.
 	 */
@@ -52,12 +50,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 	/**
 	 * Filtra cada solicitud HTTP para validar el token JWT y autenticar al usuario.
 	 * <p>
-	 * Si el token JWT está presente y es válido, se verifica que pertenezca a la organización
+	 * Si el token JWT está presente y es válido, se verifica que pertenezca a la sucursal
 	 * actual y se carga la información del miembro desde la base de datos. Luego, se establece
 	 * la autenticación en el contexto de seguridad de Spring.
 	 * <p>
 	 * Si el token no existe o es inválido, se continúa la cadena de filtros sin autenticación.
-	 *
 	 * @param request la solicitud HTTP entrante.
 	 * @param response la respuesta HTTP saliente.
 	 * @param filterChain la cadena de filtros que continúa el procesamiento de la solicitud.
@@ -85,8 +82,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 		}
 		// Extrae el email del usuario (subject) del token JWT.
 		final var email = jwtService.extractEmail(accessToken);
-		final var tenantToken = jwtService.extractOrganizationSlug(accessToken);
-		final var tenant = OrganizationContext.getOrganizationTenant();
+		final var tenantToken = jwtService.extractBranchIndentifier(accessToken);
+		final var tenant = BranchContext.getBranchTenant();
 		if(!tenantToken.equals(tenant)){
 			log.error("Organization Tenant does not match the token and request");
 			throw new TokenNotFoundException("The organization tenant does not match the token and header");

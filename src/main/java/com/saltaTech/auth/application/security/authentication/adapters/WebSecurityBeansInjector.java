@@ -32,7 +32,6 @@ public class WebSecurityBeansInjector {
 
 	/**
 	 * Provee el AuthenticationManager utilizado para manejar el proceso de autenticación.
-	 *
 	 * @param authenticationConfiguration configuración estándar de autenticación de Spring.
 	 * @return el AuthenticationManager configurado.
 	 * @throws Exception si hay problemas al obtener el manager.
@@ -45,7 +44,6 @@ public class WebSecurityBeansInjector {
 	/**
 	 * Provee el codificador de contraseñas para seguridad.
 	 * En este caso, se usa BCryptPasswordEncoder que es recomendado por su fortaleza y adaptabilidad.
-	 *
 	 * @return una instancia de PasswordEncoder.
 	 */
 	@Bean
@@ -58,7 +56,6 @@ public class WebSecurityBeansInjector {
 	 * a los usuarios basándose en una base de datos. Utiliza un {@link DaoAuthenticationProvider}
 	 * que se conecta a un {@link UserDetailsService} para cargar los detalles del usuario
 	 * y un {@link PasswordEncoder} para verificar las contraseñas.
-	 *
 	 * @return Una instancia del {@link DaoAuthenticationProvider}.
 	 */
 	@Bean

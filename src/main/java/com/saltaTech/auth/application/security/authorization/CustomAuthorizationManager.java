@@ -1,11 +1,11 @@
 package com.saltaTech.auth.application.security.authorization;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
 import com.saltaTech.auth.domain.persistence.GrantedPermission;
 import com.saltaTech.auth.domain.persistence.Operation;
-import com.saltaTech.auth.domain.persistence.OrganizationMember;
+import com.saltaTech.auth.domain.persistence.BranchMember;
 import com.saltaTech.auth.domain.repository.OperationRepository;
-import com.saltaTech.auth.domain.repository.OrganizationMemberRepository;
+import com.saltaTech.auth.domain.repository.BranchMemberRepository;
 import com.saltaTech.user.domain.persistence.User;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * públicas definidas y los permisos otorgados al usuario autenticado.
  * <p>
  * Consulta las operaciones y permisos desde la base de datos usando
- * {@link OperationRepository} y {@link OrganizationMemberRepository}.
+ * {@link OperationRepository} y {@link BranchMemberRepository}.
  *
  * @author Franco
  */
@@ -132,9 +132,9 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
 			return true; // ✅ acceso permitido para superuser
 		}
 
-		if (principal instanceof OrganizationMember member) {
+		if (principal instanceof BranchMember member) {
 			String email = member.getUser().getEmail();
-			String tenant = OrganizationContext.getOrganizationTenant();
+			String tenant = BranchContext.getBranchTenant();
 			log.debug("Usuario {} autenticado como miembro de la organización {}", email, tenant);
 
 			return obtainedOperations(member).stream()
@@ -149,7 +149,7 @@ public class CustomAuthorizationManager implements AuthorizationManager<RequestA
 	 *
 	 * @return lista de operaciones habilitadas para el usuario en la organizacion .
 	 */
-	private List<Operation> obtainedOperations(OrganizationMember member) {
+	private List<Operation> obtainedOperations(BranchMember member) {
 		return  member.getRole().getGrantedPermissions()
 				.stream()
 				.map(GrantedPermission::getOperation)

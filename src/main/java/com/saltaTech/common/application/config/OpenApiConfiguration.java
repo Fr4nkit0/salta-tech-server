@@ -17,10 +17,10 @@ import org.springframework.context.annotation.Configuration;
 		scheme = "bearer"
 )
 @SecurityScheme(
-		name = "Organization",
+		name = "Branch",
 		type = SecuritySchemeType.APIKEY,
 		in = SecuritySchemeIn.HEADER,
-		paramName = "X-Organization-Tenant"
+		paramName = "X-Branch-Tenant"
 )
 public class OpenApiConfiguration {
 		@Bean
@@ -31,11 +31,11 @@ public class OpenApiConfiguration {
 							.version("1.0")
 							.description("Salta Tech es una plataforma multi-tenant que permite a las organizaciones gestionar e integrar sus datos de manera segura y escalable."+
 									" La API expone un conjunto de controladores diseñados para interactuar con nuestros servicios, facilitando la autenticación, el manejo de recursos"+
-									" y la operación en entornos con múltiples organizaciones de forma aislada y eficiente."+
-									" Cada petición debe incluir el identificador de organización, lo que garantiza el aislamiento de datos entre diferentes clientes."))
+									" y la operación en entornos con múltiples sucursales de forma aislada y eficiente."+
+									" Cada petición debe incluir el identificador de la sucursal, lo que garantiza el aislamiento de datos entre diferentes clientes."))
 					.addSecurityItem(new SecurityRequirement()
 							.addList("Bearer Authentication"))
 					.addSecurityItem(new SecurityRequirement()
-							.addList("Organization"));
+							.addList("Branch"));
 		}
 }

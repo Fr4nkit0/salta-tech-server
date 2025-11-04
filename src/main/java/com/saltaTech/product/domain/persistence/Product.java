@@ -3,7 +3,7 @@ package com.saltaTech.product.domain.persistence;
 import com.saltaTech.brand.domain.persistence.Brand;
 import com.saltaTech.category.domain.persistence.Category;
 import com.saltaTech.common.domain.persistence.Filters;
-import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
+import com.saltaTech.common.domain.persistence.BranchFilterDefinition;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
@@ -29,11 +29,11 @@ import java.math.BigDecimal;
 @Table(name = "products")
 @EntityListeners(AuditingEntityListener.class)
 @Filter(
-		name = Filters.ORGANIZATION_FILTER,
-		condition = "EXISTS (SELECT 1 FROM organizations o WHERE "+
-				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
+		name = Filters.BRANCH_FILTER,
+		condition = "EXISTS (SELECT 1 FROM branches b WHERE "+
+				"b.id = branch_id AND b.identifier = :" + Filters.BRANCH_SLUG_PARAM + ")"
 )
-public class Product extends OrganizationFilterDefinition {
+public class Product extends BranchFilterDefinition {
 	@ManyToOne
 	@JoinColumn(name = "brand_id")
 	private Brand brand;

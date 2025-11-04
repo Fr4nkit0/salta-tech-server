@@ -16,11 +16,11 @@ CREATE TABLE IF NOT EXISTS users (
     deleted_date TIMESTAMP NULL,
     enabled BOOLEAN NOT NULL
 );
--- 2) Tabla 'organizations'
-CREATE TABLE IF NOT EXISTS organizations (
+-- 2) Tabla 'branches'
+CREATE TABLE IF NOT EXISTS branches (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
-    slug VARCHAR(50) NOT NULL UNIQUE,
+    identifier VARCHAR(50) NOT NULL UNIQUE,
     created_date TIMESTAMP NOT NULL,
     last_modified_date TIMESTAMP NULL,
     deleted_date TIMESTAMP NULL,
@@ -49,8 +49,8 @@ CREATE TABLE IF NOT EXISTS operations (
 CREATE TABLE IF NOT EXISTS roles (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
-    organization_id BIGINT NOT NULL,
-    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    branch_id BIGINT NOT NULL,
+    FOREIGN KEY (branch_id) REFERENCES branches(id)
 );
 -- 6) Tabla 'granted_permissions'
 CREATE TABLE IF NOT EXISTS granted_permissions (
@@ -60,14 +60,14 @@ CREATE TABLE IF NOT EXISTS granted_permissions (
     FOREIGN KEY (role_id) REFERENCES roles(id),
     FOREIGN KEY (operation_id) REFERENCES operations(id)
 );
--- 7) Tabla 'organizations_members'
-CREATE TABLE IF NOT EXISTS organizations_members (
+-- 7) Tabla 'branches_members'
+CREATE TABLE IF NOT EXISTS branches_members (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     user_id BIGINT NOT NULL,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     role_id BIGINT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (branch_id) REFERENCES branches(id),
     FOREIGN KEY (role_id) REFERENCES roles(id)
 );
 -- 8) Tabla 'refresh_tokens'
@@ -108,9 +108,9 @@ CREATE TABLE IF NOT EXISTS customers (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     status VARCHAR(100) NULL,
     person_id BIGINT NOT NULL,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     FOREIGN KEY (person_id) REFERENCES people(id),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (branch_id) REFERENCES branches(id),
     created_date TIMESTAMP NOT NULL,
     last_modified_date TIMESTAMP NULL,
     deleted_date TIMESTAMP NULL,
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS customers (
 -- 11) Tabla categories
 CREATE TABLE IF NOT EXISTS categories (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     name VARCHAR(30) NOT NULL,
     created_date TIMESTAMP NOT NULL,
     last_modified_date TIMESTAMP NULL,
@@ -133,12 +133,12 @@ CREATE TABLE IF NOT EXISTS categories (
     last_modified_by BIGINT NULL,
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (last_modified_by) REFERENCES users(id),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    FOREIGN KEY (branch_id) REFERENCES branches(id)
 );
 -- 12) Tabla brands
 CREATE TABLE IF NOT EXISTS brands (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     name VARCHAR(30) NOT NULL,
     created_date TIMESTAMP NOT NULL,
     last_modified_date TIMESTAMP NULL,
@@ -148,12 +148,12 @@ CREATE TABLE IF NOT EXISTS brands (
     last_modified_by BIGINT NULL,
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (last_modified_by) REFERENCES users(id),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id)
+    FOREIGN KEY (branch_id) REFERENCES branches(id)
 );
 -- 13) Tabla products
 CREATE TABLE IF NOT EXISTS products (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     brand_id BIGINT NOT NULL,
     category_id BIGINT NOT NULL,
     name VARCHAR(50) NOT NULL,
@@ -166,7 +166,7 @@ CREATE TABLE IF NOT EXISTS products (
     enabled BOOLEAN NOT NULL,
     created_by BIGINT NOT NULL,
     last_modified_by BIGINT NULL,
-    FOREIGN KEY (organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (branch_id) REFERENCES branches(id),
     FOREIGN KEY (brand_id) REFERENCES brands(id),
     FOREIGN KEY (category_id) REFERENCES categories(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
@@ -175,7 +175,7 @@ CREATE TABLE IF NOT EXISTS products (
 -- 14) Tabla sales
 CREATE TABLE IF NOT EXISTS sales (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     customer_id BIGINT NULL,
     status VARCHAR(40) NOT NULL,
     total NUMERIC(15, 2) NOT NULL,
@@ -186,7 +186,7 @@ CREATE TABLE IF NOT EXISTS sales (
     created_by BIGINT NOT NULL,
     last_modified_by BIGINT NULL,
     FOREIGN KEY (customer_id) REFERENCES customers (id),
-    FOREIGN KEY (organization_id) REFERENCES organizations (id),
+    FOREIGN KEY (branch_id) REFERENCES branches (id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (last_modified_by) REFERENCES users(id)
 );
@@ -197,7 +197,7 @@ CREATE TABLE IF NOT EXISTS sales_details (
     product_id BIGINT NOT NULL,
     quantity INTEGER NOT NULL,
     price NUMERIC(15, 2) NOT NULL,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     created_date TIMESTAMP NOT NULL,
     last_modified_date TIMESTAMP NULL,
     deleted_date TIMESTAMP NULL,
@@ -206,14 +206,14 @@ CREATE TABLE IF NOT EXISTS sales_details (
     last_modified_by BIGINT NULL,
     FOREIGN KEY (sale_id) REFERENCES sales(id),
     FOREIGN KEY (product_id) REFERENCES products(id),
-    FOREIGN KEY (organization_id) REFERENCES organizations(id),
+    FOREIGN KEY (branch_id) REFERENCES branches(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (last_modified_by) REFERENCES users(id)
 );
 -- 16) Tabla Trasactions
 CREATE TABLE IF NOT EXISTS transactions (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     type VARCHAR(3) NOT NULL,
     amount NUMERIC(15, 2) NULL,
     created_date TIMESTAMP NOT NULL,
@@ -222,14 +222,14 @@ CREATE TABLE IF NOT EXISTS transactions (
     enabled BOOLEAN NOT NULL,
     created_by BIGINT NOT NULL,
     last_modified_by BIGINT NULL,
-    FOREIGN KEY (organization_id) REFERENCES organizations (id),
+    FOREIGN KEY (branch_id) REFERENCES branches(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (last_modified_by) REFERENCES users(id)
 );
 -- 17) Tabla payment_methods
 CREATE TABLE IF NOT EXISTS payment_methods (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     name VARCHAR(30),
     type VARCHAR(30) NOT NULL,
     created_date TIMESTAMP NOT NULL,
@@ -238,14 +238,14 @@ CREATE TABLE IF NOT EXISTS payment_methods (
     enabled BOOLEAN NOT NULL,
     created_by BIGINT NOT NULL,
     last_modified_by BIGINT NULL,
-    FOREIGN KEY (organization_id) REFERENCES organizations (id),
+    FOREIGN KEY (branch_id) REFERENCES branches(id),
     FOREIGN KEY (created_by) REFERENCES users(id),
     FOREIGN KEY (last_modified_by) REFERENCES users(id)
 );
 -- 18) Tabla payments
 CREATE TABLE IF NOT EXISTS payments (
     id BIGINT PRIMARY KEY GENERATED ALWAYS AS IDENTITY,
-    organization_id BIGINT NOT NULL,
+    branch_id BIGINT NOT NULL,
     transaction_id BIGINT NOT NULL,
     sale_id BIGINT ,
     payment_method_id BIGINT NOT NULL,
@@ -257,7 +257,7 @@ CREATE TABLE IF NOT EXISTS payments (
     enabled BOOLEAN NOT NULL,
     created_by BIGINT NOT NULL,
     last_modified_by BIGINT NULL,
-    FOREIGN KEY (organization_id) REFERENCES organizations (id),
+    FOREIGN KEY (branch_id) REFERENCES branches(id),
     FOREIGN KEY (transaction_id) REFERENCES transactions (id),
     FOREIGN KEY (sale_id) REFERENCES sales(id),
     FOREIGN KEY (payment_method_id) REFERENCES payment_methods(id),

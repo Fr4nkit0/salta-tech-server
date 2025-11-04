@@ -15,7 +15,7 @@ public record CurrentUserResponse(
 		String phoneNumber,
 		@JsonProperty("is_super_user")
 		boolean isSuperUser,
-		@JsonProperty("organization_slug")
-		String organizationSlug
+		@JsonProperty("branch")
+		String branch
 ) implements Serializable {
 } 

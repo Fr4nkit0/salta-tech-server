@@ -27,7 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
-@SecurityRequirement(name = "Organization")
+@SecurityRequirement(name = "Branch")
 @Tag(name = "Autenticación", description = "Contiene todas las operaciones relacionadas con la autenticación y gestión de sesión de los usuarios.")
 public class AuthenticationController {
 	private final AuthenticationService authenticationService;

@@ -1,11 +1,11 @@
 package com.saltaTech.sale.application.service.implementations;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
-import com.saltaTech.common.application.aop.OrganizationSecured;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
+import com.saltaTech.branch.domain.persistence.Branch;
+import com.saltaTech.common.application.aop.BranchSecured;
 import com.saltaTech.customer.domain.repository.CustomerRepository;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.persistence.Organization;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
+import com.saltaTech.branch.domain.repository.BranchRepository;
 import com.saltaTech.payment.application.exceptions.PaymentMethodFoundException;
 import com.saltaTech.payment.domain.persistence.Payment;
 import com.saltaTech.payment.domain.persistence.Transaction;
@@ -42,31 +42,31 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Service
-@OrganizationSecured
+@BranchSecured
 @Transactional
 public class SaleServiceImpl implements SaleService {
 	private final SaleMapper saleMapper;
 	private final SaleRepository saleRepository;
-	private final OrganizationRepository organizationRepository;
+	private final BranchRepository branchRepository;
 	private final ProductRepository productRepository;
 	private final CustomerRepository customerRepository;
 	private final PaymentMethodRepository paymentMethodRepository;
 
-	public SaleServiceImpl(CustomerRepository customerRepository, SaleMapper saleMapper, SaleRepository saleRepository, OrganizationRepository organizationRepository, ProductRepository productRepository, PaymentMethodRepository paymentMethodRepository) {
+	public SaleServiceImpl(CustomerRepository customerRepository, SaleMapper saleMapper, SaleRepository saleRepository, BranchRepository branchRepository, ProductRepository productRepository, PaymentMethodRepository paymentMethodRepository) {
 		this.customerRepository = customerRepository;
 		this.saleMapper = saleMapper;
 		this.saleRepository = saleRepository;
-		this.organizationRepository = organizationRepository;
+		this.branchRepository = branchRepository;
 		this.productRepository = productRepository;
 		this.paymentMethodRepository = paymentMethodRepository;
 	}
 
 	@Override
 	public SalesDetailsResponse create(SaleCreateRequest createRequest) {
-		final var tenant = OrganizationContext.getOrganizationTenant();
-		final var organization = organizationRepository
+		final var tenant = BranchContext.getBranchTenant();
+		final var branch = branchRepository
 				.findActiveByTenant(tenant)
-				.orElseThrow(()-> new OrganizationNotFoundException(tenant));
+				.orElseThrow(()-> new BranchNotFoundException(tenant));
 		final var customer = customerRepository
 				.findById(createRequest.customerId())
 				.orElse(null);
@@ -82,9 +82,9 @@ public class SaleServiceImpl implements SaleService {
 		validateTotal(productsMap, items,createRequest.total());
 		validateStock(productsMap,items);
 		reduceStock(productsMap, items);
-		var sale = saleMapper.toSale(createRequest, organization, customer);
-		sale.setSaleDetails(buildSalesDetails(createRequest.items(), productsMap, sale, organization));
-		applyPayments(sale, createRequest, organization);
+		var sale = saleMapper.toSale(createRequest, branch, customer);
+		sale.setSaleDetails(buildSalesDetails(createRequest.items(), productsMap, sale, branch));
+		applyPayments(sale, createRequest, branch);
 		return saleMapper.toSaleDetailResponse(saleRepository.save(sale));
 	}
 
@@ -153,10 +153,10 @@ public class SaleServiceImpl implements SaleService {
 		}
 		productRepository.saveAll(products.values());
 	}
-	private List<SaleDetails> buildSalesDetails(List<SalesDetailsCreateRequest> items, Map<Long, Product> productsMap, Sale sale, Organization organization) {
+	private List<SaleDetails> buildSalesDetails(List<SalesDetailsCreateRequest> items, Map<Long, Product> productsMap, Sale sale, Branch branch) {
 		return items.stream()
 				.map(it -> saleMapper.toSaleDetail(
-						organization,
+						branch,
 						sale,
 						productsMap.get(it.productId()),
 						it.quantity(),
@@ -165,7 +165,7 @@ public class SaleServiceImpl implements SaleService {
 				.toList();
 	}
 
-	private void applyPayments(Sale sale, SaleCreateRequest createRequest, Organization organization) {
+	private void applyPayments(Sale sale, SaleCreateRequest createRequest, Branch branch) {
 		if (createRequest.payments() == null || createRequest.payments().isEmpty()) {
 			return;
 		}
@@ -179,22 +179,22 @@ public class SaleServiceImpl implements SaleService {
 			sale.setStatus(SaleStatus.COMPLETADO);
 		}
 		var transaction = Transaction.builder()
-				.organization(organization)
+				.branch(branch)
 				.type(Type.IN)
 				.amount(totalAmount)
 				.build();
 		var payments = createRequest.payments().stream()
-				.map(payment -> toPayment(organization, transaction, sale, payment))
+				.map(payment -> toPayment(branch, transaction, sale, payment))
 				.toList();
 
 		sale.setPayments(payments);
 	}
 
-	private Payment toPayment(Organization organization, Transaction transaction, Sale sale, SalePaymentRequest payment) {
+	private Payment toPayment(Branch branch, Transaction transaction, Sale sale, SalePaymentRequest payment) {
 		var paymentMethod = paymentMethodRepository.findById(payment.paymentMethodId())
 				.orElseThrow(() -> new PaymentMethodFoundException(payment.paymentMethodId()));
 		return Payment.builder()
-				.organization(organization)
+				.branch(branch)
 				.transaction(transaction)
 				.sale(sale)
 				.amount(payment.amount())

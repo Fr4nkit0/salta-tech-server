@@ -1,8 +1,8 @@
 package com.saltaTech.sale.application.mapper;
 
+import com.saltaTech.branch.domain.persistence.Branch;
 import com.saltaTech.customer.application.mapper.CustomerMapper;
 import com.saltaTech.customer.domain.persistence.Customer;
-import com.saltaTech.organization.domain.persistence.Organization;
 import com.saltaTech.payment.application.mapper.PaymentMapper;
 import com.saltaTech.payment.domain.dto.response.PaymentResponse;
 import com.saltaTech.payment.domain.persistence.Payment;
@@ -30,19 +30,19 @@ public class SaleMapper {
 		this.paymentMapper = paymentMapper;
 	}
 
-	public Sale toSale (SaleCreateRequest createRequest, Organization organization, Customer customer) {
+	public Sale toSale (SaleCreateRequest createRequest, Branch branch, Customer customer) {
 		if (createRequest==null) return null;
 		return Sale.builder()
-				.organization(organization)
+				.branch(branch)
 				.customer(customer)
 				.status(SaleStatus.PENDIENTE)
 				.total(createRequest.total())
 				.build();
 	}
-	public SaleDetails toSaleDetail (Organization organization, Sale sale, Product product, Integer quantity, BigDecimal price){
+	public SaleDetails toSaleDetail (Branch branch, Sale sale, Product product, Integer quantity, BigDecimal price){
 		if (sale==null) return null;
 		return SaleDetails.builder()
-				.organization(organization)
+				.branch(branch)
 				.sale(sale)
 				.product(product)
 				.quantity(quantity)
@@ -59,7 +59,7 @@ public class SaleMapper {
 
 		return new SaleResponse(
 				sale.getId(),
-				sale.getOrganization().getName(),
+				sale.getBranch().getName(),
 				sale.getCustomer().getPerson().getFullName(),
 				sale.getStatus().toString(),
 				sale.getTotal(),

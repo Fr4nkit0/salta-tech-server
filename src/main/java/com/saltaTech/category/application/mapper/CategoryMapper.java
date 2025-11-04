@@ -1,21 +1,18 @@
 package com.saltaTech.category.application.mapper;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
 import com.saltaTech.category.domain.dto.request.CategoryCreateRequest;
 import com.saltaTech.category.domain.dto.request.CategoryUpdateRequest;
 import com.saltaTech.category.domain.dto.response.CategoryResponse;
 import com.saltaTech.category.domain.persistence.Category;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.persistence.Organization;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.branch.domain.persistence.Branch;
 import org.springframework.stereotype.Service;
 
 @Service
 public class CategoryMapper {
-	public Category toCategory(CategoryCreateRequest createRequest, Organization organization){
+	public Category toCategory(CategoryCreateRequest createRequest, Branch branch){
 		if(createRequest == null) return null;
 		return Category.builder()
-				.organization(organization)
+				.branch(branch)
 				.name(createRequest.name())
 				.build();
 	}

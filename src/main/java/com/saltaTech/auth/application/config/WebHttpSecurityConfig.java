@@ -1,7 +1,7 @@
 package com.saltaTech.auth.application.config;
 
 import com.saltaTech.auth.application.security.filter.JwtAuthenticationFilter;
-import com.saltaTech.auth.application.security.filter.OrganizationResolverFilter;
+import com.saltaTech.auth.application.security.filter.BranchResolverFilter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,16 +30,16 @@ import static org.springframework.security.config.Customizer.withDefaults;
 public class WebHttpSecurityConfig {
 	private final AuthenticationProvider authenticationProvider;
 	private final JwtAuthenticationFilter jwtAuthenticationFilter;
-	private final OrganizationResolverFilter organizationResolverFilter;
+	private final BranchResolverFilter branchResolverFilter;
 	private final AuthorizationManager<RequestAuthorizationContext> authorizationManager;
 	private final AuthenticationEntryPoint authenticationEntryPoint;
 	private final AccessDeniedHandler accessDeniedHandler;
 
-	public WebHttpSecurityConfig(AccessDeniedHandler accessDeniedHandler, AuthenticationProvider authenticationProvider, JwtAuthenticationFilter jwtAuthenticationFilter, OrganizationResolverFilter organizationResolverFilter, AuthorizationManager<RequestAuthorizationContext> authorizationManager, AuthenticationEntryPoint authenticationEntryPoint) {
+	public WebHttpSecurityConfig(AccessDeniedHandler accessDeniedHandler, AuthenticationProvider authenticationProvider, JwtAuthenticationFilter jwtAuthenticationFilter, BranchResolverFilter branchResolverFilter, AuthorizationManager<RequestAuthorizationContext> authorizationManager, AuthenticationEntryPoint authenticationEntryPoint) {
 		this.accessDeniedHandler = accessDeniedHandler;
 		this.authenticationProvider = authenticationProvider;
 		this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-		this.organizationResolverFilter = organizationResolverFilter;
+		this.branchResolverFilter = branchResolverFilter;
 		this.authorizationManager = authorizationManager;
 		this.authenticationEntryPoint = authenticationEntryPoint;
 	}
@@ -56,8 +56,8 @@ public class WebHttpSecurityConfig {
 						.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 				// Asigna el proveedor de autenticación personalizado.
 				.authenticationProvider(authenticationProvider)
-				// Añade el filtro de resolución de organización antes del filtro de autenticación por nombre de usuario y contraseña.
-				.addFilterBefore(organizationResolverFilter, UsernamePasswordAuthenticationFilter.class)
+				// Añade el filtro de resolución de la Sucursal antes del filtro de autenticación por nombre de usuario y contraseña.
+				.addFilterBefore(branchResolverFilter, UsernamePasswordAuthenticationFilter.class)
 				// Añade el filtro JWT antes del filtro de autenticación por nombre de usuario y contraseña.
 				.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
 				// Configura las reglas de autorización para las peticiones HTTP.

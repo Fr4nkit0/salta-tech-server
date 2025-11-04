@@ -1,7 +1,7 @@
 package com.saltaTech.payment.domain.persistence;
 
 import com.saltaTech.common.domain.persistence.Filters;
-import com.saltaTech.common.domain.persistence.OrganizationFilterDefinition;
+import com.saltaTech.common.domain.persistence.BranchFilterDefinition;
 import com.saltaTech.payment.domain.util.Type;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -28,11 +28,11 @@ import java.math.BigDecimal;
 @Table(name = "transactions")
 @EntityListeners(AuditingEntityListener.class)
 @Filter(
-		name = Filters.ORGANIZATION_FILTER,
-		condition = "EXISTS (SELECT 1 FROM organizations o WHERE "+
-				"o.id = organization_id AND o.slug = :" + Filters.ORGANIZATION_SLUG_PARAM + ")"
+		name = Filters.BRANCH_FILTER,
+		condition = "EXISTS (SELECT 1 FROM branches b WHERE "+
+				"b.id = branch_id AND b.identifier = :" + Filters.BRANCH_SLUG_PARAM + ")"
 )
-public class Transaction extends OrganizationFilterDefinition {
+public class Transaction extends BranchFilterDefinition {
 	@Enumerated(EnumType.STRING)
 	@Column(nullable = false,length = 3)
 	private Type type;

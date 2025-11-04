@@ -37,8 +37,8 @@ import java.net.URI;
 @RestController
 @RequestMapping("products")
 @SecurityRequirement(name = "Bearer Authentication")
-@SecurityRequirement(name = "Organization")
-@Tag(name = "Productos",description = "Contiene todas las operaciones relacionadas con los productos de las organizaciones de la aplicacion.")
+@SecurityRequirement(name = "Branch")
+@Tag(name = "Productos",description = "Contiene todas las operaciones relacionadas con los productos de las sucursales de la aplicacion.")
 public class ProductController {
 	private final ProductService productService;
 
@@ -46,7 +46,7 @@ public class ProductController {
 		this.productService = productService;
 	}
 	@GetMapping
-	@Operation(summary = "Listar los Productos", description = "Obtiene una lista paginada de los productos  con filtros opcionales")
+	@Operation(summary = "Listar los Productos", description = "Obtiene una lista paginada de los productos con filtros opcionales")
 	@ApiResponses({
 			@ApiResponse(
 					responseCode = "201",

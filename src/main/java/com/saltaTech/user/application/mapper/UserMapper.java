@@ -1,6 +1,6 @@
 package com.saltaTech.user.application.mapper;
 
-import com.saltaTech.auth.domain.persistence.OrganizationMember;
+import com.saltaTech.auth.domain.persistence.BranchMember;
 import com.saltaTech.user.domain.dto.request.UserCreateRequest;
 import com.saltaTech.user.domain.dto.response.RegisteredUser;
 import com.saltaTech.user.domain.persistence.User;
@@ -19,7 +19,7 @@ public class UserMapper {
 				.isSuperUser(false)
 				.build();
 	}
-	public RegisteredUser toRegisteredUser(OrganizationMember member){
+	public RegisteredUser toRegisteredUser(BranchMember member){
 		if (member == null) return null;
 		return new RegisteredUser(
 				new RegisteredUser.UserInfo(
@@ -29,7 +29,7 @@ public class UserMapper {
 						member.getUser().getEmail(),
 						member.getUser().getPhoneNumber()
 				),
-				member.getOrganization().getName(),
+				member.getBranch().getName(),
 				member.getRoleName());
 	}
 

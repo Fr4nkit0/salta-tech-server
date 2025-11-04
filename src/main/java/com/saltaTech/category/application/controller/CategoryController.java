@@ -1,7 +1,5 @@
 package com.saltaTech.category.application.controller;
 
-import com.saltaTech.brand.domain.dto.request.BrandCreateRequest;
-import com.saltaTech.brand.domain.dto.response.BrandResponse;
 import com.saltaTech.category.application.services.interfaces.CategoryService;
 import com.saltaTech.category.domain.dto.request.CategoryCreateRequest;
 import com.saltaTech.category.domain.dto.request.CategorySearchCriteria;

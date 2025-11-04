@@ -9,7 +9,7 @@ import org.springframework.security.core.userdetails.UserDetails;
  * de Spring Security para agregar semántica específica de la aplicación.
  * <p>
  * Esta interfaz permite distinguir entre un usuario genérico y un "miembro" que puede tener
- * relaciones adicionales, como pertenencia a una organización o roles específicos.
+ * relaciones adicionales, como pertenencia a una sucursal con un rol específico.
  * <p>
  * @author Franco
  */

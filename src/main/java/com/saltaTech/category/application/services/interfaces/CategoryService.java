@@ -46,7 +46,7 @@ public interface CategoryService {
 	 * Actualiza una categoría existente.
 	 *
 	 * @param request Datos a actualizar de la categoría.
-	 * @param id      ID de la categoría a actualizar.
+	 * @param id ID de la categoría a actualizar.
 	 * @return La categoría actualizada como {@link CategoryResponse}.
 	 * @throws CategoryNotFoundException Si no se encuentra una categoría con el ID dado.
 	 */

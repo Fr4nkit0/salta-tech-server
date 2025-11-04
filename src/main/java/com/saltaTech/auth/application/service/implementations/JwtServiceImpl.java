@@ -34,8 +34,8 @@ public  class JwtServiceImpl implements JwtService{
 
 	private String generateToken(UserDetails userDetails, Map<String, Object> extraClaims,
 								 long expirationMillis) {
-		Date issuedAt = new Date(System.currentTimeMillis());
-		Date expiration = new Date(issuedAt.getTime() + expirationMillis);
+		final var issuedAt = new Date(System.currentTimeMillis());
+		final var expiration = new Date(issuedAt.getTime() + expirationMillis);
 		return Jwts.builder()
 				.header()
 				.type("JWT")
@@ -93,7 +93,7 @@ public  class JwtServiceImpl implements JwtService{
 	}
 
 	@Override
-	public String extractOrganizationSlug(String token) {
+	public String extractBranchIndentifier(String token) {
 		Claims claims = extractAllClaims(token);
 		return claims.get("X-Tenant", String.class);
 	}

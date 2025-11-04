@@ -1,13 +1,14 @@
 package com.saltaTech.auth.domain.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.saltaTech.branch.domain.persistence.Branch;
 
 import java.io.Serializable;
 import java.util.List;
 
 public record ProfileResponse(
 		UserInfo user,
-		OrganizationInfo organization,
+		BranchInfo branch,
 		RoleInfo role
 ) implements Serializable {
 
@@ -24,10 +25,10 @@ public record ProfileResponse(
 			boolean isSuperUser
 	) implements Serializable {}
 
-	public record OrganizationInfo(
+	public record BranchInfo(
 			Long id,
 			String name,
-			String slug
+			String indentifier
 	) implements Serializable {}
 
 	public record RoleInfo(

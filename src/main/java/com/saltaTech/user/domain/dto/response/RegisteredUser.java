@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 public record RegisteredUser (
 		UserInfo user,
-		String organization,
+		String branch,
 		String role
 ) implements Serializable {
 	public record UserInfo(

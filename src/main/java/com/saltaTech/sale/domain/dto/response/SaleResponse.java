@@ -9,7 +9,7 @@ import java.time.LocalDate;
 
 public record SaleResponse (
         Long id,
-        String organization,
+        String branch,
         @JsonProperty("customer_name")
         String customerName,
         String status,

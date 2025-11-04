@@ -1,5 +1,5 @@
 package com.saltaTech.category.application.services.implementations;
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
+import com.saltaTech.auth.application.security.authentication.context.BranchContext;
 import com.saltaTech.category.application.exceptions.CategoryNotFoundException;
 import com.saltaTech.category.application.exceptions.NoCategoriesFoundException;
 import com.saltaTech.category.application.mapper.CategoryMapper;
@@ -11,9 +11,9 @@ import com.saltaTech.category.domain.dto.response.CategoryResponse;
 import com.saltaTech.category.domain.persistence.Category;
 import com.saltaTech.category.domain.repository.CategoryRepository;
 import com.saltaTech.category.domain.specification.CategorySpecification;
-import com.saltaTech.common.application.aop.OrganizationSecured;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.common.application.aop.BranchSecured;
+import com.saltaTech.branch.application.exceptions.BranchNotFoundException;
+import com.saltaTech.branch.domain.repository.BranchRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -21,17 +21,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-@OrganizationSecured
+@BranchSecured
 public class CategoryServiceImpl implements CategoryService {
 	private final CategoryMapper categoryMapper;
 	private final CategoryRepository categoryRepository;
-	private final OrganizationRepository organizationRepository;
+	private final BranchRepository branchRepository;
 
 
-	public CategoryServiceImpl(CategoryMapper categoryMapper, CategoryRepository categoryRepository, OrganizationRepository organizationRepository) {
+	public CategoryServiceImpl(CategoryMapper categoryMapper, CategoryRepository categoryRepository, BranchRepository branchRepository) {
 		this.categoryMapper = categoryMapper;
 		this.categoryRepository = categoryRepository;
-		this.organizationRepository = organizationRepository;
+		this.branchRepository = branchRepository;
 	}
 
 	@Transactional(readOnly = true)
@@ -52,10 +52,10 @@ public class CategoryServiceImpl implements CategoryService {
 
 	@Override
 	public CategoryResponse create(CategoryCreateRequest createRequest) {
-		final var tenant = OrganizationContext.getOrganizationTenant() ;
-		final var organization = organizationRepository
+		final var tenant = BranchContext.getBranchTenant() ;
+		final var organization = branchRepository
 				.findActiveByTenant(tenant)
-				.orElseThrow(()-> new OrganizationNotFoundException(tenant)) ;
+				.orElseThrow(()-> new BranchNotFoundException(tenant)) ;
 		return categoryMapper.toCategoryResponse(
 				categoryRepository.save(categoryMapper.toCategory(createRequest,organization))
 		);

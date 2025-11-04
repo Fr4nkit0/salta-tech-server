@@ -1,6 +1,5 @@
 package com.saltaTech.customer.application.mapper;
 
-import com.saltaTech.auth.application.security.authentication.context.OrganizationContext;
 import com.saltaTech.common.application.mapper.PersonMapper;
 import com.saltaTech.customer.domain.dto.request.CustomerCreateRequest;
 import com.saltaTech.customer.domain.dto.request.CustomerUpdateRequest;
@@ -8,9 +7,7 @@ import com.saltaTech.customer.domain.dto.response.CustomerDetailResponse;
 import com.saltaTech.customer.domain.dto.response.CustomerResponse;
 import com.saltaTech.customer.domain.persistence.Customer;
 import com.saltaTech.customer.domain.util.Status;
-import com.saltaTech.organization.application.exceptions.OrganizationNotFoundException;
-import com.saltaTech.organization.domain.persistence.Organization;
-import com.saltaTech.organization.domain.repository.OrganizationRepository;
+import com.saltaTech.branch.domain.persistence.Branch;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import java.util.function.Consumer;
@@ -23,11 +20,11 @@ public class CustomerMapper {
 		this.personMapper = personMapper;
 	}
 
-	public Customer toCustomer (CustomerCreateRequest customerCreateRequest,Organization organization){
+	public Customer toCustomer (CustomerCreateRequest customerCreateRequest, Branch branch){
 		if (customerCreateRequest== null) return  null;
 		return Customer.builder()
 				.person(personMapper.toPerson(customerCreateRequest))
-				.organization(organization)
+				.branch(branch)
 				.status(Status.ACTIVO)
 				.build();
 	}
